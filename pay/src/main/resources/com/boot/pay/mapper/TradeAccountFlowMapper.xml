@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.pay.mapper.TradeAccountFlowMapper">
+
+    <resultMap id="BaseResultMap" type="com.boot.pay.domain.TradeAccountFlow">
+            <id property="id" column="id" />
+            <result property="flowNo" column="flow_no" />
+            <result property="accountType" column="account_type" />
+            <result property="accountId" column="account_id" />
+            <result property="paymentNo" column="payment_no" />
+            <result property="flowType" column="flow_type" />
+            <result property="amount" column="amount" />
+            <result property="beforeBalance" column="before_balance" />
+            <result property="afterBalance" column="after_balance" />
+            <result property="remark" column="remark" />
+            <result property="createTime" column="create_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,flow_no,account_type,account_id,payment_no,flow_type,
+        amount,before_balance,after_balance,remark,create_time
+    </sql>
+</mapper>

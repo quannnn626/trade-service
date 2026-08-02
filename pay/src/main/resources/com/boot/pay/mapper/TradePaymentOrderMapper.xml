@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.boot.pay.mapper.TradePaymentOrderMapper">
+
+    <resultMap id="BaseResultMap" type="com.boot.pay.domain.TradePaymentOrder">
+            <id property="id" column="id" />
+            <result property="paymentNo" column="payment_no" />
+            <result property="merchantId" column="merchant_id" />
+            <result property="orderNo" column="order_no" />
+            <result property="userId" column="user_id" />
+            <result property="amount" column="amount" />
+            <result property="paymentType" column="payment_type" />
+            <result property="status" column="status" />
+            <result property="expireTime" column="expire_time" />
+            <result property="payTime" column="pay_time" />
+            <result property="createTime" column="create_time" />
+            <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,payment_no,merchant_id,order_no,user_id,amount,
+        payment_type,status,expire_time,pay_time,create_time,
+        update_time
+    </sql>
+</mapper>
