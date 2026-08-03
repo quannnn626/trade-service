@@ -17,7 +17,7 @@ public class PayPaymentChannel {
     /**
      * 渠道ID
      */
-    @TableId
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /**

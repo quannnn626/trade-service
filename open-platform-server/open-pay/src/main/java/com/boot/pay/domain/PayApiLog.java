@@ -17,7 +17,7 @@ public class PayApiLog {
     /**
      * 日志ID
      */
-    @TableId
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /**

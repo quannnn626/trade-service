@@ -10,13 +10,14 @@
             <result property="username" column="username" />
             <result property="phone" column="phone" />
             <result property="email" column="email" />
+            <result property="password" column="password" />
             <result property="status" column="status" />
             <result property="createTime" column="create_time" />
             <result property="updateTime" column="update_time" />
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,user_no,username,phone,email,status,
-        create_time,update_time
+        id,user_no,username,phone,email,password,
+        status,create_time,update_time
     </sql>
 </mapper>

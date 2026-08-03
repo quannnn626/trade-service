@@ -18,7 +18,7 @@ public class PayRefundOrder {
     /**
      * 退款ID
      */
-    @TableId
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
@@ -40,6 +40,11 @@ public class PayRefundOrder {
      * 用户ID
      */
     private Long userId;
+
+    /**
+     * 用户名（快照）
+     */
+    private String username;
 
     /**
      * 退款金额

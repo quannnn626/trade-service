@@ -18,7 +18,7 @@ public class PayRechargeOrder {
     /**
      * 充值订单ID
      */
-    @TableId
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
@@ -30,6 +30,11 @@ public class PayRechargeOrder {
      * 用户ID
      */
     private Long userId;
+
+    /**
+     * 用户名（快照）
+     */
+    private String username;
 
     /**
      * 充值金额

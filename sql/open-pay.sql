@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 03/08/2026 12:29:40
+ Date: 03/08/2026 17:44:10
 */
 
 SET NAMES utf8mb4;
@@ -165,6 +165,8 @@ CREATE TABLE `pay_payment_order`  (
   `merchant_id` bigint NOT NULL COMMENT '商户ID',
   `order_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '业务订单号',
   `user_id` bigint NOT NULL COMMENT '付款用户',
+  `username` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '用户名（快照）',
+  `user_phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '用户手机号（快照）',
   `amount` decimal(12, 2) NOT NULL COMMENT '支付金额',
   `status` int NULL DEFAULT 0 COMMENT '支付状态',
   `expire_time` datetime NULL DEFAULT NULL COMMENT '支付过期时间',
@@ -193,6 +195,7 @@ CREATE TABLE `pay_recharge_order`  (
   `id` bigint NOT NULL COMMENT '充值订单ID',
   `recharge_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '充值单号',
   `user_id` bigint NOT NULL COMMENT '用户ID',
+  `username` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '用户名（快照）',
   `amount` decimal(12, 2) NOT NULL COMMENT '充值金额',
   `status` int NULL DEFAULT 0 COMMENT '状态',
   `finish_time` datetime NULL DEFAULT NULL COMMENT '完成时间',
@@ -216,6 +219,7 @@ CREATE TABLE `pay_refund_order`  (
   `payment_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '支付单号',
   `merchant_id` bigint NOT NULL COMMENT '商户ID',
   `user_id` bigint NOT NULL COMMENT '用户ID',
+  `username` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '用户名（快照）',
   `refund_amount` decimal(12, 2) NOT NULL COMMENT '退款金额',
   `refund_reason` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '退款原因',
   `status` int NULL DEFAULT 0 COMMENT '退款状态',
@@ -240,6 +244,7 @@ CREATE TABLE `pay_user`  (
   `username` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '用户名',
   `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '手机号',
   `email` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '邮箱',
+  `password` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '加密密码',
   `status` int NULL DEFAULT 1 COMMENT '状态 1正常 0禁用',
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

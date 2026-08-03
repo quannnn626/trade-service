@@ -17,7 +17,7 @@ public class PayMerchant {
     /**
      * 商户ID
      */
-    @TableId
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /**

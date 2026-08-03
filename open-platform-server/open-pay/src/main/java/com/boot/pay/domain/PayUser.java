@@ -17,7 +17,7 @@ public class PayUser {
     /**
      * 用户ID
      */
-    @TableId
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
@@ -39,6 +39,11 @@ public class PayUser {
      * 邮箱
      */
     private String email;
+
+    /**
+     * 加密密码
+     */
+    private String password;
 
     /**
      * 状态 1正常 0禁用

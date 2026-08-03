@@ -18,7 +18,7 @@ public class PayPaymentOrder {
     /**
      * 支付订单ID
      */
-    @TableId
+    @TableId(type = IdType.ASSIGN_ID)
     private Long id;
 
     /**
@@ -40,6 +40,16 @@ public class PayPaymentOrder {
      * 付款用户
      */
     private Long userId;
+
+    /**
+     * 用户名（快照）
+     */
+    private String username;
+
+    /**
+     * 用户手机号（快照）
+     */
+    private String userPhone;
 
     /**
      * 支付金额

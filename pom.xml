@@ -14,8 +14,8 @@
 
     <!-- 子模块 -->
     <modules>
-        <module>open-common</module>
-        <module>open-pay</module>
+        <module>open-platform-server/open-common</module>
+        <module>open-platform-server/open-pay</module>
         <!-- 后续扩展 -->
         <!-- <module>trade-account</module> -->
         <!-- <module>trade-merchant</module> -->
