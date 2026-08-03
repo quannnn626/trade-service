@@ -1,0 +1,18 @@
+package com.boot.pay.mapper;
+
+import com.boot.pay.domain.PayUserAccount;
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+
+/**
+* @author quannnn
+* @description 针对表【pay_user_account(用户钱包账户表)】的数据库操作Mapper
+* @createDate 2026-08-03 12:26:43
+* @Entity com.boot.pay.domain.PayUserAccount
+*/
+public interface PayUserAccountMapper extends BaseMapper<PayUserAccount> {
+
+}
+
+
+
+
