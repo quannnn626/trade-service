@@ -10,8 +10,6 @@
             <result property="merchantId" column="merchant_id" />
             <result property="orderNo" column="order_no" />
             <result property="userId" column="user_id" />
-            <result property="username" column="username" />
-            <result property="userPhone" column="user_phone" />
             <result property="amount" column="amount" />
             <result property="status" column="status" />
             <result property="expireTime" column="expire_time" />
@@ -23,8 +21,8 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,payment_no,merchant_id,order_no,user_id,username,
-        user_phone,amount,status,expire_time,pay_time,
+        id,payment_no,merchant_id,order_no,user_id,amount,
+        status,expire_time,pay_time,
         create_time,update_time,merchant_payment_no,channel_id
     </sql>
 </mapper>

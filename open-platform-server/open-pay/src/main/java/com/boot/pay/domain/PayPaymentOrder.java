@@ -42,16 +42,6 @@ public class PayPaymentOrder {
     private Long userId;
 
     /**
-     * 用户名（快照）
-     */
-    private String username;
-
-    /**
-     * 用户手机号（快照）
-     */
-    private String userPhone;
-
-    /**
      * 支付金额
      */
     private BigDecimal amount;

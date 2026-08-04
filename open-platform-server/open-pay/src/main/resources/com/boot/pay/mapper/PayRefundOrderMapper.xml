@@ -10,7 +10,6 @@
             <result property="paymentNo" column="payment_no" />
             <result property="merchantId" column="merchant_id" />
             <result property="userId" column="user_id" />
-            <result property="username" column="username" />
             <result property="refundAmount" column="refund_amount" />
             <result property="refundReason" column="refund_reason" />
             <result property="status" column="status" />
@@ -20,7 +19,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,refund_no,payment_no,merchant_id,user_id,username,
+        id,refund_no,payment_no,merchant_id,user_id,
         refund_amount,refund_reason,status,finish_time,
         create_time,update_time
     </sql>

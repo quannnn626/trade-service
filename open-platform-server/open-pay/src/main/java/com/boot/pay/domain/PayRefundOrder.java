@@ -42,11 +42,6 @@ public class PayRefundOrder {
     private Long userId;
 
     /**
-     * 用户名（快照）
-     */
-    private String username;
-
-    /**
      * 退款金额
      */
     private BigDecimal refundAmount;

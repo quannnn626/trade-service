@@ -8,7 +8,6 @@
             <id property="id" column="id" />
             <result property="rechargeNo" column="recharge_no" />
             <result property="userId" column="user_id" />
-            <result property="username" column="username" />
             <result property="amount" column="amount" />
             <result property="status" column="status" />
             <result property="finishTime" column="finish_time" />
@@ -17,7 +16,7 @@
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,recharge_no,user_id,username,amount,status,
+        id,recharge_no,user_id,amount,status,
         finish_time,create_time,update_time
     </sql>
 </mapper>

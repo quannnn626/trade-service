@@ -32,11 +32,6 @@ public class PayRechargeOrder {
     private Long userId;
 
     /**
-     * 用户名（快照）
-     */
-    private String username;
-
-    /**
      * 充值金额
      */
     private BigDecimal amount;
