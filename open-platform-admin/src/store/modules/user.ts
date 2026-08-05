@@ -8,9 +8,11 @@ import { useTagsViewStore } from './tagsView'
 import router from '@/router'
 
 interface UserState {
+  userId: number
   userInfo?: UserType
   tokenKey: string
   token: string
+  refreshToken: string
   roleRouters?: string[] | AppCustomRouteRecordRaw[]
   rememberMe: boolean
   loginInfo?: string
@@ -19,9 +21,11 @@ interface UserState {
 export const useUserStore = defineStore('user', {
   state: (): UserState => {
     return {
+      userId: 0,
       userInfo: undefined,
       tokenKey: 'Authorization',
       token: '',
+      refreshToken: '',
       roleRouters: undefined,
       // 记住我
       rememberMe: true,
@@ -34,6 +38,12 @@ export const useUserStore = defineStore('user', {
     },
     getToken(): string {
       return this.token
+    },
+    getRefreshToken(): string {
+      return this.refreshToken
+    },
+    getUserId(): number {
+      return this.userId
     },
     getUserInfo(): UserType | undefined {
       return this.userInfo
@@ -52,8 +62,14 @@ export const useUserStore = defineStore('user', {
     setTokenKey(tokenKey: string) {
       this.tokenKey = tokenKey
     },
+    setUserId(userId: number) {
+      this.userId = userId
+    },
     setToken(token: string) {
       this.token = token
+    },
+    setRefreshToken(refreshToken: string) {
+      this.refreshToken = refreshToken
     },
     setUserInfo(userInfo?: UserType) {
       this.userInfo = userInfo
@@ -79,7 +95,9 @@ export const useUserStore = defineStore('user', {
     reset() {
       const tagsViewStore = useTagsViewStore()
       tagsViewStore.delAllViews()
+      this.setUserId(0)
       this.setToken('')
+      this.setRefreshToken('')
       this.setUserInfo(undefined)
       this.setRoleRouters([])
       router.replace('/login')

@@ -9,3 +9,11 @@ export interface UserType {
   role: string
   roleId: string
 }
+
+export interface LoginResponseType {
+  accessToken: string
+  refreshToken: string
+  userId: number
+  username: string
+  nickname: string
+}

@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 04/08/2026 17:22:15
+ Date: 05/08/2026 09:43:39
 */
 
 SET NAMES utf8mb4;
@@ -44,6 +44,7 @@ CREATE TABLE `auth_user`  (
 -- ----------------------------
 -- Records of auth_user
 -- ----------------------------
+INSERT INTO `auth_user` VALUES (1, 'U20240001', 'admin', '$2a$10$fqNtq/X0WFtUS8mkAWy5z.ZIwKpFLUWdu0PjtvxPLGNxV04KL0euy', '管理员', '', '13800000000', 'admin@test.com', NULL, 1, '2026-08-04 17:00:00', '2026-08-04 17:00:00');
 
 -- ----------------------------
 -- Table structure for pay_account_flow

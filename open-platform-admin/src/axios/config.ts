@@ -4,6 +4,7 @@ import qs from 'qs'
 import { SUCCESS_CODE, TRANSFORM_REQUEST_DATA } from '@/constants'
 import { useUserStoreWithOut } from '@/store/modules/user'
 import { objToFormData } from '@/utils'
+import axios from 'axios'
 
 const defaultRequestInterceptors = (config: InternalAxiosRequestConfig) => {
   if (
@@ -45,8 +46,31 @@ const defaultResponseInterceptors = (response: AxiosResponse) => {
     ElMessage.error(response?.data?.message)
     if (response?.data?.code === 401) {
       const userStore = useUserStoreWithOut()
-      userStore.logout()
+      return refreshAndRetry(response, userStore)
     }
+  }
+}
+
+let isRefreshing = false
+
+const refreshAndRetry = async (response: AxiosResponse, userStore: ReturnType<typeof useUserStoreWithOut>) => {
+  isRefreshing = true
+  try {
+    const res = await axios.post('/api/auth/refresh', {
+      userId: userStore.getUserId,
+      refreshToken: userStore.getRefreshToken
+    })
+    const newToken = res.data.data as string
+    userStore.setToken(newToken)
+    // 重试原请求
+    response.config.headers['Authorization'] = newToken
+    const retryRes = await axios.request(response.config)
+    // 由上层拦截器处理 — 重新走一遍当前拦截器逻辑
+    return defaultResponseInterceptors(retryRes)
+  } catch {
+    userStore.logout()
+  } finally {
+    isRefreshing = false
   }
 }
 
