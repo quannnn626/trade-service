@@ -10,6 +10,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -48,7 +49,10 @@ public class JwtAuthInterceptor implements HandlerInterceptor {
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding(StandardCharsets.UTF_8.name());
-        Map<String, Object> body = Map.of("code", 401, "message", message, "data", null);
+        Map<String, Object> body = new HashMap<>();
+        body.put("code", 401);
+        body.put("message", message);
+        body.put("data", null);
         response.getWriter().write(OBJECT_MAPPER.writeValueAsString(body));
     }
 }
