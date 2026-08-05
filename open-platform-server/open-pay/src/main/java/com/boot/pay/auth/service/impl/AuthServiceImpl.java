@@ -1,11 +1,13 @@
 package com.boot.pay.auth.service.impl;
 
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.digest.BCrypt;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.boot.common.exception.BusinessException;
 import com.boot.pay.auth.JwtTokenUtil;
 import com.boot.pay.auth.dto.LoginDTO;
 import com.boot.pay.auth.dto.RefreshDTO;
+import com.boot.pay.auth.dto.RegisterDTO;
 import com.boot.pay.auth.service.AuthService;
 import com.boot.pay.auth.vo.LoginVO;
 import com.boot.pay.domain.AuthUser;
@@ -51,6 +53,25 @@ public class AuthServiceImpl implements AuthService {
         // 5. 返回
         return new LoginVO(accessToken, refreshToken,
                 user.getId(), user.getUsername(), user.getNickname());
+    }
+
+    @Override
+    public void register(RegisterDTO dto) {
+        // 1. 校验用户名是否已存在
+        boolean exists = authUserMapper.exists(
+                new QueryWrapper<AuthUser>().eq("username", dto.getUsername()));
+        if (exists) {
+            throw new BusinessException("用户名已被注册");
+        }
+        // 2. 组装用户对象
+        AuthUser user = new AuthUser();
+        user.setUserNo("UR" + IdUtil.getSnowflakeNextIdStr());
+        user.setUsername(dto.getUsername());
+        user.setPassword(BCrypt.hashpw(dto.getPassword()));
+        user.setNickname(dto.getNickname() != null ? dto.getNickname() : dto.getUsername());
+        user.setStatus(1);
+        // 3. 入库
+        authUserMapper.insert(user);
     }
 
     @Override

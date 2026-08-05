@@ -1,12 +1,14 @@
 <script setup lang="tsx">
 import { Form, FormSchema } from '@/components/Form'
-import { reactive, ref, unref } from 'vue'
+import { reactive, ref } from 'vue'
 import { useI18n } from '@/hooks/web/useI18n'
 import { useForm } from '@/hooks/web/useForm'
-import { ElInput, FormRules } from 'element-plus'
+import { FormRules } from 'element-plus'
 import { useValidator } from '@/hooks/web/useValidator'
 import { BaseButton } from '@/components/Button'
 import { IAgree } from '@/components/IAgree'
+import { registerApi } from '@/api/login'
+import { ElMessage } from 'element-plus'
 
 const emit = defineEmits(['to-login'])
 
@@ -17,19 +19,20 @@ const { t } = useI18n()
 
 const { required, check } = useValidator()
 
-const getCodeTime = ref(60)
-const getCodeLoading = ref(false)
-const getCode = () => {
-  getCodeLoading.value = true
-  const timer = setInterval(() => {
-    getCodeTime.value--
-    if (getCodeTime.value <= 0) {
-      clearInterval(timer)
-      getCodeTime.value = 60
-      getCodeLoading.value = false
-    }
-  }, 1000)
-}
+// 验证码功能暂未实现，先注释
+// const getCodeTime = ref(60)
+// const getCodeLoading = ref(false)
+// const getCode = () => {
+//   getCodeLoading.value = true
+//   const timer = setInterval(() => {
+//     getCodeTime.value--
+//     if (getCodeTime.value <= 0) {
+//       clearInterval(timer)
+//       getCodeTime.value = 60
+//       getCodeLoading.value = false
+//     }
+//   }, 1000)
+// }
 
 const schema = reactive<FormSchema[]>([
   {
@@ -87,33 +90,6 @@ const schema = reactive<FormSchema[]>([
       },
       strength: true,
       placeholder: t('login.passwordPlaceholder')
-    }
-  },
-  {
-    field: 'code',
-    label: t('login.code'),
-    colProps: {
-      span: 24
-    },
-    formItemProps: {
-      slots: {
-        default: (formData) => {
-          return (
-            <div class="w-[100%] flex">
-              <ElInput v-model={formData.code} placeholder={t('login.codePlaceholder')} />
-              <BaseButton
-                type="primary"
-                disabled={unref(getCodeLoading)}
-                class="ml-10px"
-                onClick={getCode}
-              >
-                {t('login.getCode')}
-                {unref(getCodeLoading) ? `(${unref(getCodeTime)})` : ''}
-              </BaseButton>
-            </div>
-          )
-        }
-      }
     }
   },
 
@@ -180,7 +156,8 @@ const rules: FormRules = {
   username: [required()],
   password: [required()],
   check_password: [required()],
-  code: [required()],
+  // 验证码功能暂未实现，先注释
+  // code: [required()],
   iAgree: [required(), check()]
 }
 
@@ -196,7 +173,15 @@ const loginRegister = async () => {
     if (valid) {
       try {
         loading.value = true
+        const formData = await formMethods.getFormData()
+        await registerApi({
+          username: formData.username,
+          password: formData.password
+        })
+        ElMessage.success('注册成功，请登录')
         toLogin()
+      } catch (error: any) {
+        ElMessage.error(error?.message || '注册失败')
       } finally {
         loading.value = false
       }
