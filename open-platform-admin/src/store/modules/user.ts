@@ -85,7 +85,7 @@ export const useUserStore = defineStore('user', {
         type: 'warning'
       })
         .then(async () => {
-          const res = await loginOutApi().catch(() => {})
+          const res = await loginOutApi(this.userId).catch(() => {})
           if (res) {
             this.reset()
           }
