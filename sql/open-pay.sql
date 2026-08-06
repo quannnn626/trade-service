@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 05/08/2026 09:43:39
+ Date: 06/08/2026 10:50:02
 */
 
 SET NAMES utf8mb4;
@@ -45,6 +45,7 @@ CREATE TABLE `auth_user`  (
 -- Records of auth_user
 -- ----------------------------
 INSERT INTO `auth_user` VALUES (1, 'U20240001', 'admin', '$2a$10$fqNtq/X0WFtUS8mkAWy5z.ZIwKpFLUWdu0PjtvxPLGNxV04KL0euy', '管理员', '', '13800000000', 'admin@test.com', NULL, 1, '2026-08-04 17:00:00', '2026-08-04 17:00:00');
+INSERT INTO `auth_user` VALUES (2084908504743415809, 'UR2084908504455385088', 'test1', '$2a$10$OE.D06ZjNHxYdcE8Ws/0aedkoMEpyM8jKzZ5NkfpEJ50cNss2ods6', 'test1', '', NULL, NULL, NULL, 1, '2026-08-05 15:44:57', '2026-08-05 15:44:57');
 
 -- ----------------------------
 -- Table structure for pay_account_flow
@@ -257,30 +258,6 @@ CREATE TABLE `pay_refund_order`  (
 
 -- ----------------------------
 -- Records of pay_refund_order
--- ----------------------------
-
--- ----------------------------
--- Table structure for pay_user
--- ----------------------------
-DROP TABLE IF EXISTS `pay_user`;
-CREATE TABLE `pay_user`  (
-  `id` bigint NOT NULL COMMENT '用户ID',
-  `user_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '用户编号',
-  `username` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '用户名',
-  `phone` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '手机号',
-  `email` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '邮箱',
-  `password` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL DEFAULT '' COMMENT '加密密码',
-  `status` int NULL DEFAULT 1 COMMENT '状态 1正常 0禁用',
-  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
-  `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `uk_user_no`(`user_no` ASC) USING BTREE,
-  UNIQUE INDEX `uk_phone`(`phone` ASC) USING BTREE,
-  UNIQUE INDEX `uk_email`(`email` ASC) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '交易平台用户表' ROW_FORMAT = DYNAMIC;
-
--- ----------------------------
--- Records of pay_user
 -- ----------------------------
 
 -- ----------------------------
