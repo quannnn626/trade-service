@@ -2,6 +2,8 @@ package com.boot.pay.service;
 
 import com.boot.pay.domain.PayMerchant;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.boot.pay.merchant.dto.MerchantApplyDTO;
+import com.boot.pay.merchant.vo.MerchantApplyVO;
 
 /**
 * @author quannnn
@@ -10,4 +12,8 @@ import com.baomidou.mybatisplus.extension.service.IService;
 */
 public interface PayMerchantService extends IService<PayMerchant> {
 
+    /**
+     * 商户入驻申请
+     */
+    MerchantApplyVO apply(MerchantApplyDTO dto);
 }
