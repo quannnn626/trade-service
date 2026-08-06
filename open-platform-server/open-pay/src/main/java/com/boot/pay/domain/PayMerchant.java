@@ -1,9 +1,9 @@
 package com.boot.pay.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.math.BigDecimal;
 import java.util.Date;
 import lombok.Data;
 
@@ -51,12 +51,12 @@ public class PayMerchant {
     private Integer status;
 
     /**
-     * 
+     * 创建时间
      */
     private Date createTime;
 
     /**
-     * 
+     * 更新时间
      */
     private Date updateTime;
 
@@ -65,64 +65,80 @@ public class PayMerchant {
      */
     private String notifyUrl;
 
-    @Override
-    public boolean equals(Object that) {
-        if (this == that) {
-            return true;
-        }
-        if (that == null) {
-            return false;
-        }
-        if (getClass() != that.getClass()) {
-            return false;
-        }
-        PayMerchant other = (PayMerchant) that;
-        return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
-            && (this.getMerchantNo() == null ? other.getMerchantNo() == null : this.getMerchantNo().equals(other.getMerchantNo()))
-            && (this.getMerchantName() == null ? other.getMerchantName() == null : this.getMerchantName().equals(other.getMerchantName()))
-            && (this.getMerchantType() == null ? other.getMerchantType() == null : this.getMerchantType().equals(other.getMerchantType()))
-            && (this.getAppKey() == null ? other.getAppKey() == null : this.getAppKey().equals(other.getAppKey()))
-            && (this.getAppSecret() == null ? other.getAppSecret() == null : this.getAppSecret().equals(other.getAppSecret()))
-            && (this.getStatus() == null ? other.getStatus() == null : this.getStatus().equals(other.getStatus()))
-            && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
-            && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()))
-            && (this.getNotifyUrl() == null ? other.getNotifyUrl() == null : this.getNotifyUrl().equals(other.getNotifyUrl()));
-    }
+    // ======================== 1.1 扩展字段 ========================
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
-        result = prime * result + ((getMerchantNo() == null) ? 0 : getMerchantNo().hashCode());
-        result = prime * result + ((getMerchantName() == null) ? 0 : getMerchantName().hashCode());
-        result = prime * result + ((getMerchantType() == null) ? 0 : getMerchantType().hashCode());
-        result = prime * result + ((getAppKey() == null) ? 0 : getAppKey().hashCode());
-        result = prime * result + ((getAppSecret() == null) ? 0 : getAppSecret().hashCode());
-        result = prime * result + ((getStatus() == null) ? 0 : getStatus().hashCode());
-        result = prime * result + ((getCreateTime() == null) ? 0 : getCreateTime().hashCode());
-        result = prime * result + ((getUpdateTime() == null) ? 0 : getUpdateTime().hashCode());
-        result = prime * result + ((getNotifyUrl() == null) ? 0 : getNotifyUrl().hashCode());
-        return result;
-    }
+    /**
+     * 联系人姓名
+     */
+    private String contactName;
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", id=").append(id);
-        sb.append(", merchantNo=").append(merchantNo);
-        sb.append(", merchantName=").append(merchantName);
-        sb.append(", merchantType=").append(merchantType);
-        sb.append(", appKey=").append(appKey);
-        sb.append(", appSecret=").append(appSecret);
-        sb.append(", status=").append(status);
-        sb.append(", createTime=").append(createTime);
-        sb.append(", updateTime=").append(updateTime);
-        sb.append(", notifyUrl=").append(notifyUrl);
-        sb.append("]");
-        return sb.toString();
-    }
+    /**
+     * 联系人电话
+     */
+    private String contactPhone;
+
+    /**
+     * 联系人邮箱
+     */
+    private String contactEmail;
+
+    /**
+     * 企业全称
+     */
+    private String companyName;
+
+    /**
+     * 营业执照号
+     */
+    private String businessLicense;
+
+    /**
+     * 结算方式 1-T+1 2-T+0 3-周结 4-月结
+     */
+    private Integer settleType;
+
+    /**
+     * 结算费率（如0.0060=0.6%）
+     */
+    private BigDecimal settleFeeRate;
+
+    /**
+     * 授权过期时间
+     */
+    private Date expireTime;
+
+    /**
+     * 密钥版本号
+     */
+    private Integer secretVersion;
+
+    /**
+     * IP白名单（JSON数组）
+     */
+    private String whiteIpList;
+
+    /**
+     * 单日交易限额
+     */
+    private BigDecimal dailyLimit;
+
+    /**
+     * 单笔交易限额
+     */
+    private BigDecimal singleLimit;
+
+    /**
+     * 备注
+     */
+    private String remark;
+
+    /**
+     * 审核状态 0-待审核 1-已通过 2-已驳回
+     */
+    private Integer auditStatus;
+
+    /**
+     * 审核备注
+     */
+    private String auditRemark;
 }

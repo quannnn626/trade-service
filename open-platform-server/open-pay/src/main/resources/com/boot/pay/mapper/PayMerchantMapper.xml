@@ -15,10 +15,28 @@
             <result property="createTime" column="create_time" />
             <result property="updateTime" column="update_time" />
             <result property="notifyUrl" column="notify_url" />
+            <result property="contactName" column="contact_name" />
+            <result property="contactPhone" column="contact_phone" />
+            <result property="contactEmail" column="contact_email" />
+            <result property="companyName" column="company_name" />
+            <result property="businessLicense" column="business_license" />
+            <result property="settleType" column="settle_type" />
+            <result property="settleFeeRate" column="settle_fee_rate" />
+            <result property="expireTime" column="expire_time" />
+            <result property="secretVersion" column="secret_version" />
+            <result property="whiteIpList" column="white_ip_list" />
+            <result property="dailyLimit" column="daily_limit" />
+            <result property="singleLimit" column="single_limit" />
+            <result property="remark" column="remark" />
+            <result property="auditStatus" column="audit_status" />
+            <result property="auditRemark" column="audit_remark" />
     </resultMap>
 
     <sql id="Base_Column_List">
         id,merchant_no,merchant_name,merchant_type,app_key,app_secret,
-        status,create_time,update_time,notify_url
+        status,create_time,update_time,notify_url,
+        contact_name,contact_phone,contact_email,company_name,business_license,
+        settle_type,settle_fee_rate,expire_time,secret_version,white_ip_list,
+        daily_limit,single_limit,remark,audit_status,audit_remark
     </sql>
 </mapper>
