@@ -20,6 +20,10 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(new JwtAuthInterceptor(jwtTokenUtil))
                 .addPathPatterns("/**")
-                .excludePathPatterns("/auth/login", "/auth/register", "/auth/refresh", "/auth/logout", "/error");
+                .excludePathPatterns(
+                        "/auth/login", "/auth/register", "/auth/refresh", "/auth/logout",
+                        "/api/merchant/**",
+                        "/error"
+                );
     }
 }

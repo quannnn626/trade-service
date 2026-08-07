@@ -23,4 +23,14 @@ public interface PayMerchantService extends IService<PayMerchant> {
      * 商户审核
      */
     MerchantAuditVO audit(MerchantAuditDTO dto);
+
+    /**
+     * 启用商户
+     */
+    void enable(String merchantNo);
+
+    /**
+     * 禁用商户
+     */
+    void disable(String merchantNo);
 }

@@ -181,4 +181,53 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
                 .auditRemark(dto.getAuditRemark())
                 .build();
     }
+
+    @Override
+    public void enable(String merchantNo) {
+        PayMerchant merchant = this.getOne(
+                new LambdaQueryWrapper<PayMerchant>()
+                        .eq(PayMerchant::getMerchantNo, merchantNo)
+        );
+        if (merchant == null) {
+            throw new BusinessException("商户不存在: " + merchantNo);
+        }
+        if (merchant.getAuditStatus() != 1) {
+            throw new BusinessException("仅审核通过的商户可启用，当前状态: " + merchant.getAuditStatus());
+        }
+        if (merchant.getStatus() == 1) {
+            return;
+        }
+
+        boolean updated = this.lambdaUpdate()
+                .eq(PayMerchant::getMerchantNo, merchantNo)
+                .set(PayMerchant::getStatus, 1)
+                .update();
+        if (!updated) {
+            throw new BusinessException("启用商户失败");
+        }
+        log.info("商户已启用: merchantNo={}", merchantNo);
+    }
+
+    @Override
+    public void disable(String merchantNo) {
+        PayMerchant merchant = this.getOne(
+                new LambdaQueryWrapper<PayMerchant>()
+                        .eq(PayMerchant::getMerchantNo, merchantNo)
+        );
+        if (merchant == null) {
+            throw new BusinessException("商户不存在: " + merchantNo);
+        }
+        if (merchant.getStatus() == 0) {
+            return;
+        }
+
+        boolean updated = this.lambdaUpdate()
+                .eq(PayMerchant::getMerchantNo, merchantNo)
+                .set(PayMerchant::getStatus, 0)
+                .update();
+        if (!updated) {
+            throw new BusinessException("禁用商户失败");
+        }
+        log.info("商户已禁用: merchantNo={}", merchantNo);
+    }
 }
