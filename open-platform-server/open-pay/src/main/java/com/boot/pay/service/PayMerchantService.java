@@ -1,11 +1,14 @@
 package com.boot.pay.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.boot.pay.domain.PayMerchant;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.boot.pay.merchant.dto.MerchantApplyDTO;
 import com.boot.pay.merchant.dto.MerchantAuditDTO;
 import com.boot.pay.merchant.vo.MerchantApplyVO;
 import com.boot.pay.merchant.vo.MerchantAuditVO;
+import com.boot.pay.merchant.vo.MerchantDetailVO;
+import com.boot.pay.merchant.vo.MerchantListVO;
 
 /**
 * @author quannnn
@@ -33,4 +36,14 @@ public interface PayMerchantService extends IService<PayMerchant> {
      * 禁用商户
      */
     void disable(String merchantNo);
+
+    /**
+     * 商户详情（含资金账户）
+     */
+    MerchantDetailVO detail(String merchantNo);
+
+    /**
+     * 商户分页列表
+     */
+    IPage<MerchantListVO> listPage(Integer page, Integer pageSize, String merchantName, Integer status, Integer auditStatus);
 }

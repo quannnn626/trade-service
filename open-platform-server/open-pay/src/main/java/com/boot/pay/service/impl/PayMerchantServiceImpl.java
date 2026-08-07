@@ -3,6 +3,8 @@ package com.boot.pay.service.impl;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.SecureUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.boot.common.exception.BusinessException;
 import com.boot.pay.domain.PayMerchant;
@@ -13,6 +15,8 @@ import com.boot.pay.merchant.dto.MerchantApplyDTO;
 import com.boot.pay.merchant.dto.MerchantAuditDTO;
 import com.boot.pay.merchant.vo.MerchantApplyVO;
 import com.boot.pay.merchant.vo.MerchantAuditVO;
+import com.boot.pay.merchant.vo.MerchantDetailVO;
+import com.boot.pay.merchant.vo.MerchantListVO;
 import com.boot.pay.service.PayMerchantService;
 import jakarta.annotation.Resource;
 import java.math.BigDecimal;
@@ -229,5 +233,85 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
             throw new BusinessException("禁用商户失败");
         }
         log.info("商户已禁用: merchantNo={}", merchantNo);
+    }
+
+    @Override
+    public MerchantDetailVO detail(String merchantNo) {
+        PayMerchant merchant = this.getOne(
+                new LambdaQueryWrapper<PayMerchant>()
+                        .eq(PayMerchant::getMerchantNo, merchantNo)
+        );
+        if (merchant == null) {
+            throw new BusinessException("商户不存在: " + merchantNo);
+        }
+
+        PayMerchantAccount account = payMerchantAccountMapper.selectOne(
+                new LambdaQueryWrapper<PayMerchantAccount>()
+                        .eq(PayMerchantAccount::getMerchantId, merchant.getId())
+        );
+
+        MerchantDetailVO.MerchantDetailVOBuilder builder = MerchantDetailVO.builder()
+                .merchantNo(merchant.getMerchantNo())
+                .merchantName(merchant.getMerchantName())
+                .companyName(merchant.getCompanyName())
+                .businessLicense(merchant.getBusinessLicense())
+                .merchantType(merchant.getMerchantType())
+                .appKey(merchant.getAppKey())
+                .status(merchant.getStatus())
+                .auditStatus(merchant.getAuditStatus())
+                .auditRemark(merchant.getAuditRemark())
+                .contactName(merchant.getContactName())
+                .contactPhone(merchant.getContactPhone())
+                .contactEmail(merchant.getContactEmail())
+                .settleType(merchant.getSettleType())
+                .settleFeeRate(merchant.getSettleFeeRate())
+                .dailyLimit(merchant.getDailyLimit())
+                .singleLimit(merchant.getSingleLimit())
+                .whiteIpList(merchant.getWhiteIpList())
+                .notifyUrl(merchant.getNotifyUrl())
+                .secretVersion(merchant.getSecretVersion())
+                .remark(merchant.getRemark())
+                .createTime(merchant.getCreateTime() != null ? merchant.getCreateTime().toString() : null)
+                .updateTime(merchant.getUpdateTime() != null ? merchant.getUpdateTime().toString() : null);
+
+        if (account != null) {
+            builder.accountNo(account.getAccountNo())
+                    .balance(account.getBalance())
+                    .frozenAmount(account.getFrozenAmount());
+        }
+
+        return builder.build();
+    }
+
+    @Override
+    public IPage<MerchantListVO> listPage(Integer page, Integer pageSize,
+                                          String merchantName, Integer status, Integer auditStatus) {
+        LambdaQueryWrapper<PayMerchant> wrapper = new LambdaQueryWrapper<>();
+        if (merchantName != null && !merchantName.isBlank()) {
+            wrapper.like(PayMerchant::getMerchantName, merchantName);
+        }
+        if (status != null) {
+            wrapper.eq(PayMerchant::getStatus, status);
+        }
+        if (auditStatus != null) {
+            wrapper.eq(PayMerchant::getAuditStatus, auditStatus);
+        }
+        wrapper.orderByDesc(PayMerchant::getCreateTime);
+
+        Page<PayMerchant> pageParam = new Page<>(page, pageSize);
+        Page<PayMerchant> result = this.page(pageParam, wrapper);
+
+        return result.convert(m -> MerchantListVO.builder()
+                .merchantNo(m.getMerchantNo())
+                .merchantName(m.getMerchantName())
+                .companyName(m.getCompanyName())
+                .contactName(m.getContactName())
+                .contactPhone(m.getContactPhone())
+                .merchantType(m.getMerchantType())
+                .settleFeeRate(m.getSettleFeeRate())
+                .status(m.getStatus())
+                .auditStatus(m.getAuditStatus())
+                .createTime(m.getCreateTime() != null ? m.getCreateTime().toString() : null)
+                .build());
     }
 }
