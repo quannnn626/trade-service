@@ -2,7 +2,9 @@ package com.boot.pay.merchant.controller;
 
 import com.boot.common.result.Result;
 import com.boot.pay.merchant.dto.MerchantApplyDTO;
+import com.boot.pay.merchant.dto.MerchantAuditDTO;
 import com.boot.pay.merchant.vo.MerchantApplyVO;
+import com.boot.pay.merchant.vo.MerchantAuditVO;
 import com.boot.pay.service.PayMerchantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,5 +29,13 @@ public class MerchantController {
     @PostMapping("/apply")
     public Result<MerchantApplyVO> apply(@Valid @RequestBody MerchantApplyDTO dto) {
         return Result.success(payMerchantService.apply(dto));
+    }
+
+    /**
+     * 商户审核
+     */
+    @PostMapping("/audit")
+    public Result<MerchantAuditVO> audit(@Valid @RequestBody MerchantAuditDTO dto) {
+        return Result.success(payMerchantService.audit(dto));
     }
 }
