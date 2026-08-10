@@ -8,6 +8,7 @@ import com.boot.pay.merchant.vo.MerchantApplyVO;
 import com.boot.pay.merchant.vo.MerchantAuditVO;
 import com.boot.pay.merchant.vo.MerchantDetailVO;
 import com.boot.pay.merchant.vo.MerchantListVO;
+import com.boot.pay.merchant.vo.MerchantSecretVO;
 import com.boot.pay.service.PayMerchantService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -70,6 +71,14 @@ public class MerchantController {
     @GetMapping("/{merchantNo}")
     public Result<MerchantDetailVO> detail(@PathVariable String merchantNo) {
         return Result.success(payMerchantService.detail(merchantNo));
+    }
+
+    /**
+     * 密钥轮换
+     */
+    @PutMapping("/{merchantNo}/rotate-secret")
+    public Result<MerchantSecretVO> rotateSecret(@PathVariable String merchantNo) {
+        return Result.success(payMerchantService.rotateSecret(merchantNo));
     }
 
     /**

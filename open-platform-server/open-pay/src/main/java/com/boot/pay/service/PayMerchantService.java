@@ -9,6 +9,7 @@ import com.boot.pay.merchant.vo.MerchantApplyVO;
 import com.boot.pay.merchant.vo.MerchantAuditVO;
 import com.boot.pay.merchant.vo.MerchantDetailVO;
 import com.boot.pay.merchant.vo.MerchantListVO;
+import com.boot.pay.merchant.vo.MerchantSecretVO;
 
 /**
 * @author quannnn
@@ -46,4 +47,9 @@ public interface PayMerchantService extends IService<PayMerchant> {
      * 商户分页列表
      */
     IPage<MerchantListVO> listPage(Integer page, Integer pageSize, String merchantName, Integer status, Integer auditStatus);
+
+    /**
+     * 密钥轮换
+     */
+    MerchantSecretVO rotateSecret(String merchantNo);
 }

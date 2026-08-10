@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 07/08/2026 14:38:17
+ Date: 10/08/2026 13:54:54
 */
 
 SET NAMES utf8mb4;
@@ -130,8 +130,10 @@ CREATE TABLE `pay_merchant`  (
 -- ----------------------------
 -- Records of pay_merchant
 -- ----------------------------
-INSERT INTO `pay_merchant` VALUES (2085297007843151873, 'M20260806580286976', '测试商户', 1, '77c6afca6c6b991d', 'f0e33d82dc45488eb55d00e0fe142641', 1, '2026-08-06 17:28:44', '2026-08-06 17:28:44', NULL, '张三', '13800000000', 'zhangsan@test.com', 'XX科技有限公司', '91110000123456789X', 1, 0.0060, NULL, 1, NULL, 100000.00, 10000.00, NULL, 1, '企业资质审核通过');
+INSERT INTO `pay_merchant` VALUES (2085297007843151873, 'M20260806580286976', '测试商户', 1, '77c6afca6c6b991d', '006d20745435432a838daad7fc19bfd8', 1, '2026-08-06 17:28:44', '2026-08-10 13:54:14', NULL, '张三', '13800000000', 'zhangsan@test.com', 'XX科技有限公司', '91110000123456789X', 1, 0.0060, NULL, 2, NULL, 100000.00, 10000.00, NULL, 1, '企业资质审核通过');
 INSERT INTO `pay_merchant` VALUES (2085557096843902977, 'M20260807815923200', '测试商户2', 1, '5345aa160624a9f9', 'fa8900a615504d21ae36bd5e7a653b76', 0, '2026-08-07 10:42:14', '2026-08-07 10:42:14', NULL, '张三', '13800000001', 'zhangsan@test.com', 'XX科技有限公司', '91110000123456789X', 1, 0.0060, NULL, 1, NULL, 100000.00, 10000.00, NULL, 2, '营业执照号与公司名称不一致，请核实');
+INSERT INTO `pay_merchant` VALUES (2085617616783491074, 'M20260807738717696', '测试商户3', 1, 'cc97a3decba03f65', '44df316bca274ff9bbd5ad1fe31ef9c5', 0, '2026-08-07 14:42:43', '2026-08-07 14:42:43', NULL, '张三', '13800000002', 'zhangsan@test.com', 'XX科技有限公司', '91110000123456789X', 1, 0.0060, NULL, 1, NULL, 100000.00, 10000.00, NULL, 2, '营业执照号与公司名称不一致，请核实');
+INSERT INTO `pay_merchant` VALUES (2085617758337056770, 'M20260807363586560', '测试商户3', 1, '073b6f87478dbf50', '45f7a0861a074707a809c2fd54ad8a49', 1, '2026-08-07 14:43:17', '2026-08-07 14:43:17', NULL, '张三', '13800000002', 'zhangsan@test.com', 'XX科技有限公司', '91110000123456789X', 1, 0.0060, NULL, 1, NULL, 100000.00, 10000.00, NULL, 1, '企业资质审核通过');
 
 -- ----------------------------
 -- Table structure for pay_merchant_account
@@ -156,6 +158,28 @@ CREATE TABLE `pay_merchant_account`  (
 -- Records of pay_merchant_account
 -- ----------------------------
 INSERT INTO `pay_merchant_account` VALUES (2085555584205914113, 2085297007843151873, 'MA20260807194711552', 0.00, 0.00, 1, '2026-08-07 10:36:13', '2026-08-07 10:36:13', 0);
+INSERT INTO `pay_merchant_account` VALUES (2085618404968710146, 2085617758337056770, 'MA20260807970074112', 0.00, 0.00, 1, '2026-08-07 14:45:51', '2026-08-07 14:45:51', 0);
+
+-- ----------------------------
+-- Table structure for pay_merchant_secret_history
+-- ----------------------------
+DROP TABLE IF EXISTS `pay_merchant_secret_history`;
+CREATE TABLE `pay_merchant_secret_history`  (
+  `id` bigint NOT NULL COMMENT '主键',
+  `merchant_id` bigint NOT NULL COMMENT '商户ID',
+  `secret` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '历史密钥',
+  `version` int NOT NULL COMMENT '密钥版本号',
+  `expire_time` datetime NOT NULL COMMENT '失效时间',
+  `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`) USING BTREE,
+  INDEX `idx_merchant_id`(`merchant_id` ASC) USING BTREE,
+  INDEX `idx_expire_time`(`expire_time` ASC) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '商户密钥历史表' ROW_FORMAT = Dynamic;
+
+-- ----------------------------
+-- Records of pay_merchant_secret_history
+-- ----------------------------
+INSERT INTO `pay_merchant_secret_history` VALUES (2086692577598074881, 2085297007843151873, 'f0e33d82dc45488eb55d00e0fe142641', 1, '2026-08-11 13:54:14', '2026-08-10 13:54:14');
 
 -- ----------------------------
 -- Table structure for pay_payment_channel

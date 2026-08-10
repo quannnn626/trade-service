@@ -9,19 +9,24 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.boot.common.exception.BusinessException;
 import com.boot.pay.domain.PayMerchant;
 import com.boot.pay.domain.PayMerchantAccount;
+import com.boot.pay.domain.PayMerchantSecretHistory;
 import com.boot.pay.mapper.PayMerchantAccountMapper;
 import com.boot.pay.mapper.PayMerchantMapper;
+import com.boot.pay.mapper.PayMerchantSecretHistoryMapper;
 import com.boot.pay.merchant.dto.MerchantApplyDTO;
 import com.boot.pay.merchant.dto.MerchantAuditDTO;
 import com.boot.pay.merchant.vo.MerchantApplyVO;
 import com.boot.pay.merchant.vo.MerchantAuditVO;
 import com.boot.pay.merchant.vo.MerchantDetailVO;
 import com.boot.pay.merchant.vo.MerchantListVO;
+import com.boot.pay.merchant.vo.MerchantSecretVO;
 import com.boot.pay.service.PayMerchantService;
 import jakarta.annotation.Resource;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +43,9 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
 
     @Resource
     private PayMerchantAccountMapper payMerchantAccountMapper;
+
+    @Resource
+    private PayMerchantSecretHistoryMapper payMerchantSecretHistoryMapper;
 
     @Override
     public MerchantApplyVO apply(MerchantApplyDTO dto) {
@@ -313,5 +321,53 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
                 .auditStatus(m.getAuditStatus())
                 .createTime(m.getCreateTime() != null ? m.getCreateTime().toString() : null)
                 .build());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public MerchantSecretVO rotateSecret(String merchantNo) {
+        PayMerchant merchant = this.getOne(
+                new LambdaQueryWrapper<PayMerchant>()
+                        .eq(PayMerchant::getMerchantNo, merchantNo)
+        );
+        if (merchant == null) {
+            throw new BusinessException("商户不存在: " + merchantNo);
+        }
+        if (merchant.getAuditStatus() != 1 || merchant.getStatus() != 1) {
+            throw new BusinessException("仅已审核且启用的商户可轮换密钥");
+        }
+
+        // 旧密钥存入历史表，24小时过渡期后失效
+        PayMerchantSecretHistory history = new PayMerchantSecretHistory();
+        history.setMerchantId(merchant.getId());
+        history.setSecret(merchant.getAppSecret());
+        history.setVersion(merchant.getSecretVersion());
+
+        LocalDateTime expireTime = LocalDateTime.now().plusHours(24);
+        history.setExpireTime(java.sql.Timestamp.valueOf(expireTime));
+        payMerchantSecretHistoryMapper.insert(history);
+
+        // 生成新密钥
+        String newSecret = IdUtil.fastSimpleUUID();
+        Integer newVersion = merchant.getSecretVersion() + 1;
+
+        boolean updated = this.lambdaUpdate()
+                .eq(PayMerchant::getMerchantNo, merchantNo)
+                .set(PayMerchant::getAppSecret, newSecret)
+                .set(PayMerchant::getSecretVersion, newVersion)
+                .update();
+        if (!updated) {
+            throw new BusinessException("密钥轮换失败");
+        }
+
+        log.info("商户密钥已轮换: merchantNo={}, oldVersion={}, newVersion={}",
+                merchantNo, merchant.getSecretVersion(), newVersion);
+
+        return MerchantSecretVO.builder()
+                .merchantNo(merchantNo)
+                .appSecret(newSecret)
+                .secretVersion(newVersion)
+                .tip("密钥已轮换，旧密钥24小时后失效，请尽快更新。新密钥仅展示一次！")
+                .build();
     }
 }
