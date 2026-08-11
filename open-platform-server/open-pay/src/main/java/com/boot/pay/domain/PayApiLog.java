@@ -41,6 +41,16 @@ public class PayApiLog {
     private String requestUrl;
 
     /**
+     * 商户编号
+     */
+    private String merchantNo;
+
+    /**
+     * 请求UA
+     */
+    private String userAgent;
+
+    /**
      * 请求参数
      */
     private String requestParam;
@@ -49,6 +59,16 @@ public class PayApiLog {
      * 响应结果
      */
     private String responseResult;
+
+    /**
+     * 验签结果 0-通过 1-失败
+     */
+    private Integer signResult;
+
+    /**
+     * 错误信息
+     */
+    private String errorMsg;
 
     /**
      * 耗时毫秒
