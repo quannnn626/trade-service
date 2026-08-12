@@ -114,8 +114,9 @@ public class OpenApiAuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 校验 nonce
-        if (!nonceValidator.validate(appKey, nonce)) {
+        // 校验 nonce（GET 等只读请求跳过，仅 POST/PUT/DELETE 需要防重放）
+        if (!"GET".equalsIgnoreCase(request.getMethod())
+                && !nonceValidator.validate(appKey, nonce)) {
             log.warn("nonce 重复: appKey={}", appKey);
             write401(response, "重复请求");
             return false;

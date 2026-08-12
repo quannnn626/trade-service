@@ -14,6 +14,7 @@ import com.boot.pay.mapper.PayPaymentOrderMapper;
 import com.boot.pay.payment.dto.CreatePayDTO;
 import com.boot.pay.payment.enums.PayStatusEnum;
 import com.boot.pay.payment.vo.CreatePayVO;
+import com.boot.pay.payment.vo.PayOrderVO;
 import com.boot.pay.service.PayPaymentOrderService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -120,6 +121,66 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
                 paymentNo, dto.getOrderNo(), dto.getAmount(), feeAmount);
 
         return buildVO(order);
+    }
+
+    @Override
+    public PayOrderVO queryByPaymentNo(String paymentNo, Long merchantId) {
+        PayPaymentOrder order = baseMapper.selectOne(
+                new LambdaQueryWrapper<PayPaymentOrder>()
+                        .eq(PayPaymentOrder::getPaymentNo, paymentNo)
+        );
+        if (order == null) {
+            throw new BusinessException("订单不存在");
+        }
+        if (!order.getMerchantId().equals(merchantId)) {
+            throw new BusinessException("无权查看该订单");
+        }
+        return buildOrderVO(order);
+    }
+
+    @Override
+    public PayOrderVO queryByOrderNo(String orderNo, Long merchantId) {
+        PayPaymentOrder order = baseMapper.selectOne(
+                new LambdaQueryWrapper<PayPaymentOrder>()
+                        .eq(PayPaymentOrder::getMerchantId, merchantId)
+                        .eq(PayPaymentOrder::getMerchantPaymentNo, orderNo)
+        );
+        if (order == null) {
+            throw new BusinessException("订单不存在");
+        }
+        return buildOrderVO(order);
+    }
+
+    private PayOrderVO buildOrderVO(PayPaymentOrder order) {
+        PayStatusEnum statusEnum = PayStatusEnum.of(order.getStatus());
+
+        // 查询渠道名称
+        String channelName = null;
+        if (order.getChannelId() != null) {
+            PayPaymentChannel channel = payPaymentChannelMapper.selectById(order.getChannelId());
+            if (channel != null) {
+                channelName = channel.getChannelName();
+            }
+        }
+
+        return PayOrderVO.builder()
+                .paymentNo(order.getPaymentNo())
+                .orderNo(order.getOrderNo())
+                .amount(order.getAmount())
+                .feeAmount(order.getFeeAmount())
+                .settleAmount(order.getSettleAmount())
+                .status(order.getStatus())
+                .statusDesc(statusEnum != null ? statusEnum.getDesc() : "未知")
+                .subject(order.getSubject())
+                .description(order.getDescription())
+                .channelName(channelName)
+                .clientIp(order.getClientIp())
+                .notifyUrl(order.getNotifyUrl())
+                .attach(order.getAttach())
+                .expireTime(order.getExpireTime())
+                .payTime(order.getPayTime())
+                .createTime(order.getCreateTime())
+                .build();
     }
 
     private CreatePayVO buildVO(PayPaymentOrder order) {
