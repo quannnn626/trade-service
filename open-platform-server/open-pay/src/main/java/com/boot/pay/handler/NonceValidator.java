@@ -9,7 +9,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * nonce 防重放验证器
  * <p>
- * 通过 Redis SET NX 确保同一个 nonce 在 5 分钟内只能使用一次。首次出现放行，重复出现拒绝。
+ * 拆为两步：check 只查不存（拦截器用），mark 在业务成功后标记（AOP 切面用）。
+ * 避免业务失败后 nonce 已被消耗导致无法重试的问题。
  *
  * @author quannnn
  */
@@ -22,10 +23,21 @@ public class NonceValidator {
 
     private final StringRedisTemplate stringRedisTemplate;
 
-    public boolean validate(String appKey, String nonce) {
+    /**
+     * 检查 nonce 是否已被使用（只查不存）
+     *
+     * @return true 表示未使用可放行，false 表示已使用需拒绝
+     */
+    public boolean check(String appKey, String nonce) {
         String key = NONCE_PREFIX + appKey + ":" + nonce;
-        Boolean success = stringRedisTemplate.opsForValue()
-                .setIfAbsent(key, "1", NONCE_TTL_MINUTES, TimeUnit.MINUTES);
-        return Boolean.TRUE.equals(success);
+        return Boolean.FALSE.equals(stringRedisTemplate.hasKey(key));
+    }
+
+    /**
+     * 标记 nonce 已使用（业务成功后调用）
+     */
+    public void mark(String appKey, String nonce) {
+        String key = NONCE_PREFIX + appKey + ":" + nonce;
+        stringRedisTemplate.opsForValue().set(key, "1", NONCE_TTL_MINUTES, TimeUnit.MINUTES);
     }
 }

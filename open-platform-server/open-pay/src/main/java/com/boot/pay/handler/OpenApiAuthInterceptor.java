@@ -114,13 +114,15 @@ public class OpenApiAuthInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        // 校验 nonce（GET 等只读请求跳过，仅 POST/PUT/DELETE 需要防重放）
+        // 校验 nonce（只读请求跳过；写请求只查不存，标记由 AOP 在业务成功后完成）
         if (!"GET".equalsIgnoreCase(request.getMethod())
-                && !nonceValidator.validate(appKey, nonce)) {
+                && !nonceValidator.check(appKey, nonce)) {
             log.warn("nonce 重复: appKey={}", appKey);
             write401(response, "重复请求");
             return false;
         }
+        // 存储 nonce 供 AOP 在业务成功后标记
+        request.setAttribute("openApiNonce", nonce);
 
         // 验签
         if (!SignUtil.verifySign(params, merchant.getAppSecret(), sign)) {

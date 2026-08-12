@@ -28,6 +28,8 @@ public class OpenApiLogAspect {
 
     private final PayApiLogService payApiLogService;
 
+    private final NonceValidator nonceValidator;
+
     @Around("@annotation(openApi)")
     public Object around(ProceedingJoinPoint joinPoint, OpenApi openApi) throws Throwable {
         long start = System.currentTimeMillis();
@@ -64,6 +66,15 @@ public class OpenApiLogAspect {
             result = joinPoint.proceed();
             apiLog.setSignResult(0);
             apiLog.setResponseResult(JSON.toJSONString(result));
+
+            // 业务成功后标记 nonce 已使用
+            if (request != null) {
+                String nonce = (String) request.getAttribute("openApiNonce");
+                MerchantContext ctx = (MerchantContext) request.getAttribute("merchantContext");
+                if (nonce != null && ctx != null) {
+                    nonceValidator.mark(ctx.getAppKey(), nonce);
+                }
+            }
         } catch (Throwable t) {
             apiLog.setSignResult(0);
             apiLog.setErrorMsg(truncate(t.getMessage(), 500));
