@@ -65,8 +65,6 @@ public class PayMerchant {
      */
     private String notifyUrl;
 
-    // ======================== 1.1 扩展字段 ========================
-
     /**
      * 联系人姓名
      */

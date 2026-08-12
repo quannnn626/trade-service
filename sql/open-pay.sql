@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 12/08/2026 09:38:19
+ Date: 12/08/2026 10:14:19
 */
 
 SET NAMES utf8mb4;
@@ -96,6 +96,10 @@ CREATE TABLE `pay_api_log`  (
 -- ----------------------------
 -- Records of pay_api_log
 -- ----------------------------
+INSERT INTO `pay_api_log` VALUES (2087358211910606849, 2085297007843151873, 'pay.create', 'POST', '/open/pay/create', '[serialize error]', '[exception: DataIntegrityViolationException]', 133, '2026-08-12 09:59:13', 'M20260806580286976', 0, '\r\n### Error updating database.  Cause: java.sql.SQLException: Field \'user_id\' doesn\'t have a default value\r\n### The error may exist in com/boot/pay/mapper/PayPaymentOrderMapper.java (best guess)\r\n### The error may involve com.boot.pay.mapper.PayPaymentOrderMapper.insert-Inline\r\n### The error occurred while setting parameters\r\n### SQL: INSERT INTO pay_payment_order  ( id, payment_no, merchant_id, order_no,  amount, status, expire_time,    merchant_payment_no, channel_id, client_ip, subject,     t', 'PostmanRuntime/7.51.1');
+INSERT INTO `pay_api_log` VALUES (2087359532688547843, 2085297007843151873, 'pay.create', 'POST', '/open/pay/create', '[serialize error]', '[exception: DataIntegrityViolationException]', 17, '2026-08-12 10:04:28', 'M20260806580286976', 0, '\r\n### Error updating database.  Cause: java.sql.SQLException: Field \'user_id\' doesn\'t have a default value\r\n### The error may exist in com/boot/pay/mapper/PayPaymentOrderMapper.java (best guess)\r\n### The error may involve com.boot.pay.mapper.PayPaymentOrderMapper.insert-Inline\r\n### The error occurred while setting parameters\r\n### SQL: INSERT INTO pay_payment_order  ( id, payment_no, merchant_id, order_no,  amount, status, expire_time,    merchant_payment_no, channel_id, client_ip, subject,     t', 'PostmanRuntime/7.51.1');
+INSERT INTO `pay_api_log` VALUES (2087359624233426947, 2085297007843151873, 'pay.create', 'POST', '/open/pay/create', '[serialize error]', '[exception: DataIntegrityViolationException]', 12, '2026-08-12 10:04:50', 'M20260806580286976', 0, '\r\n### Error updating database.  Cause: java.sql.SQLException: Field \'user_id\' doesn\'t have a default value\r\n### The error may exist in com/boot/pay/mapper/PayPaymentOrderMapper.java (best guess)\r\n### The error may involve com.boot.pay.mapper.PayPaymentOrderMapper.insert-Inline\r\n### The error occurred while setting parameters\r\n### SQL: INSERT INTO pay_payment_order  ( id, payment_no, merchant_id, order_no,  amount, status, expire_time,    merchant_payment_no, channel_id, client_ip, subject,     t', 'PostmanRuntime/7.51.1');
+INSERT INTO `pay_api_log` VALUES (2087359887149178882, 2085297007843151873, 'pay.create', 'POST', '/open/pay/create', '[serialize error]', '{\"code\":0,\"data\":{\"amount\":99.00,\"expireTime\":\"2026-08-12 10:35:53.027\",\"paymentNo\":\"PAY20260812158939648\",\"status\":0,\"statusDesc\":\"待支付\"},\"message\":\"success\"}', 19, '2026-08-12 10:05:53', 'M20260806580286976', 0, NULL, 'PostmanRuntime/7.51.1');
 
 -- ----------------------------
 -- Table structure for pay_merchant
@@ -240,7 +244,7 @@ CREATE TABLE `pay_payment_order`  (
   `payment_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '支付流水号',
   `merchant_id` bigint NOT NULL COMMENT '商户ID',
   `order_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL COMMENT '业务订单号',
-  `user_id` bigint NOT NULL COMMENT '付款用户',
+  `user_id` bigint NOT NULL DEFAULT 0 COMMENT '付款用户',
   `amount` decimal(12, 2) NOT NULL COMMENT '支付金额',
   `status` int NULL DEFAULT 0 COMMENT '支付状态',
   `expire_time` datetime NULL DEFAULT NULL COMMENT '支付过期时间',
@@ -274,6 +278,7 @@ CREATE TABLE `pay_payment_order`  (
 -- ----------------------------
 -- Records of pay_payment_order
 -- ----------------------------
+INSERT INTO `pay_payment_order` VALUES (2087359887149178881, 'PAY20260812158939648', 2085297007843151873, 'ORD1786500341434', 0, 99.00, 0, '2026-08-12 10:35:53', NULL, '2026-08-12 10:05:53', '2026-08-12 10:05:53', 'ORD1786500341434', 1, '0:0:0:0:0:0:0:1', '测试商品', NULL, NULL, NULL, NULL, '2026-08-12 10:35:53', NULL, NULL, 0.59, 98.41, 0, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for pay_recharge_order
