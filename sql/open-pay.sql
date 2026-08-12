@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 11/08/2026 14:16:41
+ Date: 12/08/2026 09:38:19
 */
 
 SET NAMES utf8mb4;
@@ -249,6 +249,20 @@ CREATE TABLE `pay_payment_order`  (
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `merchant_payment_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '商城支付单号',
   `channel_id` bigint NULL DEFAULT NULL COMMENT '支付渠道ID',
+  `client_ip` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '客户端/服务器IP',
+  `subject` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '商品标题（展示用）',
+  `description` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '订单描述',
+  `notify_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '订单级别回调地址',
+  `return_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '支付完成跳转地址',
+  `attach` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '附加数据（透传，原样返回）',
+  `timeout_expire` datetime NULL DEFAULT NULL COMMENT '订单超时自动关闭时间',
+  `close_time` datetime NULL DEFAULT NULL COMMENT '关单时间',
+  `close_reason` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '关单原因',
+  `fee_amount` decimal(12, 2) NULL DEFAULT 0.00 COMMENT '手续费金额',
+  `settle_amount` decimal(12, 2) NULL DEFAULT 0.00 COMMENT '结算金额（=amount - fee_amount）',
+  `settle_status` int NULL DEFAULT 0 COMMENT '结算状态 0-未结算 1-已结算',
+  `settle_time` datetime NULL DEFAULT NULL COMMENT '结算时间',
+  `sign` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '订单签名（防篡改）',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_payment_no`(`payment_no` ASC) USING BTREE,
   UNIQUE INDEX `uk_merchant_payment`(`merchant_id` ASC, `merchant_payment_no` ASC) USING BTREE,

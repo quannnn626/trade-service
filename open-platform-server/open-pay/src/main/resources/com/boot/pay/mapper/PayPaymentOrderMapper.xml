@@ -18,11 +18,29 @@
             <result property="updateTime" column="update_time" />
             <result property="merchantPaymentNo" column="merchant_payment_no" />
             <result property="channelId" column="channel_id" />
+            <result property="clientIp" column="client_ip" />
+            <result property="subject" column="subject" />
+            <result property="description" column="description" />
+            <result property="notifyUrl" column="notify_url" />
+            <result property="returnUrl" column="return_url" />
+            <result property="attach" column="attach" />
+            <result property="timeoutExpire" column="timeout_expire" />
+            <result property="closeTime" column="close_time" />
+            <result property="closeReason" column="close_reason" />
+            <result property="feeAmount" column="fee_amount" />
+            <result property="settleAmount" column="settle_amount" />
+            <result property="settleStatus" column="settle_status" />
+            <result property="settleTime" column="settle_time" />
+            <result property="sign" column="sign" />
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,payment_no,merchant_id,order_no,user_id,amount,
-        status,expire_time,pay_time,
-        create_time,update_time,merchant_payment_no,channel_id
+        id, payment_no, merchant_id, order_no, user_id, amount,
+        status, expire_time, pay_time,
+        create_time, update_time, merchant_payment_no, channel_id,
+        client_ip, subject, description,
+        notify_url, return_url, attach,
+        timeout_expire, close_time, close_reason,
+        fee_amount, settle_amount, settle_status, settle_time, sign
     </sql>
 </mapper>

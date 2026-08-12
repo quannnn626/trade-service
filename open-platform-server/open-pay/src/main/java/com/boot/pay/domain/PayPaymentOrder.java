@@ -81,73 +81,74 @@ public class PayPaymentOrder {
      */
     private Long channelId;
 
-    @Override
-    public boolean equals(Object that) {
-        if (this == that) {
-            return true;
-        }
-        if (that == null) {
-            return false;
-        }
-        if (getClass() != that.getClass()) {
-            return false;
-        }
-        PayPaymentOrder other = (PayPaymentOrder) that;
-        return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
-            && (this.getPaymentNo() == null ? other.getPaymentNo() == null : this.getPaymentNo().equals(other.getPaymentNo()))
-            && (this.getMerchantId() == null ? other.getMerchantId() == null : this.getMerchantId().equals(other.getMerchantId()))
-            && (this.getOrderNo() == null ? other.getOrderNo() == null : this.getOrderNo().equals(other.getOrderNo()))
-            && (this.getUserId() == null ? other.getUserId() == null : this.getUserId().equals(other.getUserId()))
-            && (this.getAmount() == null ? other.getAmount() == null : this.getAmount().equals(other.getAmount()))
-            && (this.getStatus() == null ? other.getStatus() == null : this.getStatus().equals(other.getStatus()))
-            && (this.getExpireTime() == null ? other.getExpireTime() == null : this.getExpireTime().equals(other.getExpireTime()))
-            && (this.getPayTime() == null ? other.getPayTime() == null : this.getPayTime().equals(other.getPayTime()))
-            && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
-            && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()))
-            && (this.getMerchantPaymentNo() == null ? other.getMerchantPaymentNo() == null : this.getMerchantPaymentNo().equals(other.getMerchantPaymentNo()))
-            && (this.getChannelId() == null ? other.getChannelId() == null : this.getChannelId().equals(other.getChannelId()));
-    }
+    /**
+     * 客户端/服务器IP
+     */
+    private String clientIp;
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
-        result = prime * result + ((getPaymentNo() == null) ? 0 : getPaymentNo().hashCode());
-        result = prime * result + ((getMerchantId() == null) ? 0 : getMerchantId().hashCode());
-        result = prime * result + ((getOrderNo() == null) ? 0 : getOrderNo().hashCode());
-        result = prime * result + ((getUserId() == null) ? 0 : getUserId().hashCode());
-        result = prime * result + ((getAmount() == null) ? 0 : getAmount().hashCode());
-        result = prime * result + ((getStatus() == null) ? 0 : getStatus().hashCode());
-        result = prime * result + ((getExpireTime() == null) ? 0 : getExpireTime().hashCode());
-        result = prime * result + ((getPayTime() == null) ? 0 : getPayTime().hashCode());
-        result = prime * result + ((getCreateTime() == null) ? 0 : getCreateTime().hashCode());
-        result = prime * result + ((getUpdateTime() == null) ? 0 : getUpdateTime().hashCode());
-        result = prime * result + ((getMerchantPaymentNo() == null) ? 0 : getMerchantPaymentNo().hashCode());
-        result = prime * result + ((getChannelId() == null) ? 0 : getChannelId().hashCode());
-        return result;
-    }
+    /**
+     * 商品标题（展示用）
+     */
+    private String subject;
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", id=").append(id);
-        sb.append(", paymentNo=").append(paymentNo);
-        sb.append(", merchantId=").append(merchantId);
-        sb.append(", orderNo=").append(orderNo);
-        sb.append(", userId=").append(userId);
-        sb.append(", amount=").append(amount);
-        sb.append(", status=").append(status);
-        sb.append(", expireTime=").append(expireTime);
-        sb.append(", payTime=").append(payTime);
-        sb.append(", createTime=").append(createTime);
-        sb.append(", updateTime=").append(updateTime);
-        sb.append(", merchantPaymentNo=").append(merchantPaymentNo);
-        sb.append(", channelId=").append(channelId);
-        sb.append("]");
-        return sb.toString();
-    }
+    /**
+     * 订单描述
+     */
+    private String description;
+
+    /**
+     * 订单级别回调地址（覆盖商户默认回调地址）
+     */
+    private String notifyUrl;
+
+    /**
+     * 支付完成跳转地址
+     */
+    private String returnUrl;
+
+    /**
+     * 附加数据（透传，原样返回给商户）
+     */
+    private String attach;
+
+    /**
+     * 订单超时自动关闭时间
+     */
+    private Date timeoutExpire;
+
+    /**
+     * 关单时间
+     */
+    private Date closeTime;
+
+    /**
+     * 关单原因
+     */
+    private String closeReason;
+
+    /**
+     * 手续费金额
+     */
+    private BigDecimal feeAmount;
+
+    /**
+     * 结算金额（amount - fee_amount）
+     */
+    private BigDecimal settleAmount;
+
+    /**
+     * 结算状态 0-未结算 1-已结算
+     */
+    private Integer settleStatus;
+
+    /**
+     * 结算时间
+     */
+    private Date settleTime;
+
+    /**
+     * 订单签名（防篡改）
+     */
+    private String sign;
+
 }
