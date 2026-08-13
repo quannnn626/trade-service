@@ -41,4 +41,11 @@ public interface PayPaymentOrderService extends IService<PayPaymentOrder> {
      * @return 订单详情
      */
     PayOrderVO queryByOrderNo(String orderNo, Long merchantId);
+
+    /**
+     * 关闭超时未支付的订单
+     *
+     * @return 本次关闭的订单数量
+     */
+    int closeExpiredOrders();
 }

@@ -3,6 +3,7 @@ package com.boot.pay.service.impl;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.boot.common.exception.BusinessException;
 import com.boot.pay.domain.PayMerchant;
@@ -151,15 +152,31 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
         return buildOrderVO(order);
     }
 
+    @Override
+    public int closeExpiredOrders() {
+        // 批量关闭 status=WAIT_PAY 且已过超时时间的订单
+        Date now = new Date();
+        int rows = baseMapper.update(null, new LambdaUpdateWrapper<PayPaymentOrder>()
+                .eq(PayPaymentOrder::getStatus, PayStatusEnum.WAIT_PAY.getCode())
+                .lt(PayPaymentOrder::getTimeoutExpire, now)
+                .set(PayPaymentOrder::getStatus, PayStatusEnum.CLOSED.getCode())
+                .set(PayPaymentOrder::getCloseTime, now)
+                .set(PayPaymentOrder::getCloseReason, "超时关闭"));
+        log.info("超时关单任务执行完成，关闭订单数: {}", rows);
+        return rows;
+    }
+
     private PayOrderVO buildOrderVO(PayPaymentOrder order) {
         PayStatusEnum statusEnum = PayStatusEnum.of(order.getStatus());
 
-        // 查询渠道名称
+        // 查询渠道信息
         String channelName = null;
+        String channelCode = null;
         if (order.getChannelId() != null) {
             PayPaymentChannel channel = payPaymentChannelMapper.selectById(order.getChannelId());
             if (channel != null) {
                 channelName = channel.getChannelName();
+                channelCode = channel.getChannelCode();
             }
         }
 
@@ -173,6 +190,7 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
                 .statusDesc(statusEnum != null ? statusEnum.getDesc() : "未知")
                 .subject(order.getSubject())
                 .description(order.getDescription())
+                .channelCode(channelCode)
                 .channelName(channelName)
                 .clientIp(order.getClientIp())
                 .notifyUrl(order.getNotifyUrl())
