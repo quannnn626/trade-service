@@ -15,10 +15,21 @@
             <result property="updateTime" column="update_time" />
             <result property="mallUserId" column="mall_user_id" />
             <result property="version" column="version" />
+            <result property="totalIncome" column="total_income" />
+            <result property="totalExpense" column="total_expense" />
+            <result property="payPassword" column="pay_password" />
+            <result property="realName" column="real_name" />
+            <result property="idCard" column="id_card" />
+            <result property="realNameAuth" column="real_name_auth" />
+            <result property="dailyLimit" column="daily_limit" />
+            <result property="dailyUsed" column="daily_used" />
+            <result property="dailyDate" column="daily_date" />
     </resultMap>
 
     <sql id="Base_Column_List">
         id,user_id,account_no,balance,frozen_amount,status,
-        create_time,update_time,mall_user_id,version
+        create_time,update_time,mall_user_id,version,
+        total_income,total_expense,pay_password,real_name,id_card,
+        real_name_auth,daily_limit,daily_used,daily_date
     </sql>
 </mapper>
