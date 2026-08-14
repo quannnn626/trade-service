@@ -4,6 +4,8 @@ import cn.hutool.crypto.digest.BCrypt;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.boot.common.exception.BusinessException;
+import com.boot.pay.account.constants.AccountConstants;
+import com.boot.pay.account.dto.RealNameAuthDTO;
 import com.boot.pay.account.dto.SetPayPasswordDTO;
 import com.boot.pay.account.enums.RealNameAuthEnum;
 import com.boot.pay.account.vo.AccountVO;
@@ -61,6 +63,35 @@ public class PayUserAccountServiceImpl extends ServiceImpl<PayUserAccountMapper,
             throw new BusinessException("设置支付密码失败，请稍后重试");
         }
         log.info("支付密码设置成功 userId={} accountNo={}", userId, account.getAccountNo());
+    }
+
+    @Override
+    public void realNameAuth(Long userId, RealNameAuthDTO dto) {
+        PayUserAccount account = getByUserId(userId);
+        // 已实名认证过，幂等直接返回
+        if (RealNameAuthEnum.REAL.getCode().equals(account.getRealNameAuth())) {
+            log.info("账户已实名认证，跳过重复认证 userId={} accountNo={}", userId, account.getAccountNo());
+            return;
+        }
+        // 支付密码校验（实名需先用支付密码确认身份）
+        if (account.getPayPassword() == null || account.getPayPassword().isEmpty()) {
+            throw new BusinessException("请先设置支付密码");
+        }
+        if (!BCrypt.checkpw(dto.getPayPassword(), account.getPayPassword())) {
+            throw new BusinessException("支付密码错误");
+        }
+        // 更新实名信息，实名后日限额提升至 50000
+        boolean updated = this.lambdaUpdate()
+                .eq(PayUserAccount::getUserId, userId)
+                .set(PayUserAccount::getRealName, dto.getRealName())
+                .set(PayUserAccount::getIdCard, dto.getIdCard())
+                .set(PayUserAccount::getRealNameAuth, RealNameAuthEnum.REAL.getCode())
+                .set(PayUserAccount::getDailyLimit, AccountConstants.DAILY_LIMIT_REAL_NAME)
+                .update();
+        if (!updated) {
+            throw new BusinessException("实名认证失败，请稍后重试");
+        }
+        log.info("实名认证成功 userId={} accountNo={} realName={}", userId, account.getAccountNo(), dto.getRealName());
     }
 
     private PayUserAccount getByUserId(Long userId) {

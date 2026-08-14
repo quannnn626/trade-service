@@ -1,6 +1,7 @@
 package com.boot.pay.account.controller;
 
 import com.boot.common.result.Result;
+import com.boot.pay.account.dto.RealNameAuthDTO;
 import com.boot.pay.account.dto.SetPayPasswordDTO;
 import com.boot.pay.account.vo.AccountVO;
 import com.boot.pay.service.PayUserAccountService;
@@ -51,6 +52,17 @@ public class AccountController {
                                        HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         payUserAccountService.setPayPassword(userId, dto);
+        return Result.success();
+    }
+
+    /**
+     * 实名认证
+     */
+    @PostMapping("/real-name-auth")
+    public Result<Void> realNameAuth(@Valid @RequestBody RealNameAuthDTO dto,
+                                     HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        payUserAccountService.realNameAuth(userId, dto);
         return Result.success();
     }
 }

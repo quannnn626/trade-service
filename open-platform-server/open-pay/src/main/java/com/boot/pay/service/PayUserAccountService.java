@@ -1,5 +1,6 @@
 package com.boot.pay.service;
 
+import com.boot.pay.account.dto.RealNameAuthDTO;
 import com.boot.pay.account.dto.SetPayPasswordDTO;
 import com.boot.pay.account.vo.AccountVO;
 import com.boot.pay.domain.PayUserAccount;
@@ -35,4 +36,12 @@ public interface PayUserAccountService extends IService<PayUserAccount> {
      * @param dto    支付密码请求
      */
     void setPayPassword(Long userId, SetPayPasswordDTO dto);
+
+    /**
+     * 实名认证（校验支付密码，模拟第三方校验，认证后日限额提升至50000）
+     *
+     * @param userId 用户ID
+     * @param dto    实名认证请求
+     */
+    void realNameAuth(Long userId, RealNameAuthDTO dto);
 }
