@@ -61,6 +61,21 @@ public class PayMerchantAccount {
      */
     private Integer version;
 
+    /**
+     * 累计收入
+     */
+    private BigDecimal totalIncome;
+
+    /**
+     * 累计支出（退款）
+     */
+    private BigDecimal totalExpense;
+
+    /**
+     * 累计手续费支出
+     */
+    private BigDecimal totalFee;
+
     @Override
     public boolean equals(Object that) {
         if (this == that) {
@@ -81,7 +96,10 @@ public class PayMerchantAccount {
             && (this.getStatus() == null ? other.getStatus() == null : this.getStatus().equals(other.getStatus()))
             && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
             && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()))
-            && (this.getVersion() == null ? other.getVersion() == null : this.getVersion().equals(other.getVersion()));
+            && (this.getVersion() == null ? other.getVersion() == null : this.getVersion().equals(other.getVersion()))
+            && (this.getTotalIncome() == null ? other.getTotalIncome() == null : this.getTotalIncome().equals(other.getTotalIncome()))
+            && (this.getTotalExpense() == null ? other.getTotalExpense() == null : this.getTotalExpense().equals(other.getTotalExpense()))
+            && (this.getTotalFee() == null ? other.getTotalFee() == null : this.getTotalFee().equals(other.getTotalFee()));
     }
 
     @Override
@@ -97,6 +115,9 @@ public class PayMerchantAccount {
         result = prime * result + ((getCreateTime() == null) ? 0 : getCreateTime().hashCode());
         result = prime * result + ((getUpdateTime() == null) ? 0 : getUpdateTime().hashCode());
         result = prime * result + ((getVersion() == null) ? 0 : getVersion().hashCode());
+        result = prime * result + ((getTotalIncome() == null) ? 0 : getTotalIncome().hashCode());
+        result = prime * result + ((getTotalExpense() == null) ? 0 : getTotalExpense().hashCode());
+        result = prime * result + ((getTotalFee() == null) ? 0 : getTotalFee().hashCode());
         return result;
     }
 
@@ -115,6 +136,9 @@ public class PayMerchantAccount {
         sb.append(", createTime=").append(createTime);
         sb.append(", updateTime=").append(updateTime);
         sb.append(", version=").append(version);
+        sb.append(", totalIncome=").append(totalIncome);
+        sb.append(", totalExpense=").append(totalExpense);
+        sb.append(", totalFee=").append(totalFee);
         sb.append("]");
         return sb.toString();
     }

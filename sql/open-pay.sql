@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 12/08/2026 10:14:19
+ Date: 15/08/2026 15:44:23
 */
 
 SET NAMES utf8mb4;
@@ -46,6 +46,7 @@ CREATE TABLE `auth_user`  (
 -- ----------------------------
 INSERT INTO `auth_user` VALUES (1, 'U20240001', 'admin', '$2a$10$fqNtq/X0WFtUS8mkAWy5z.ZIwKpFLUWdu0PjtvxPLGNxV04KL0euy', '管理员', '', '13800000000', 'admin@test.com', NULL, 1, '2026-08-04 17:00:00', '2026-08-04 17:00:00');
 INSERT INTO `auth_user` VALUES (2084908504743415809, 'UR2084908504455385088', 'test1', '$2a$10$OE.D06ZjNHxYdcE8Ws/0aedkoMEpyM8jKzZ5NkfpEJ50cNss2ods6', 'test1', '', NULL, NULL, NULL, 1, '2026-08-05 15:44:57', '2026-08-05 15:44:57');
+INSERT INTO `auth_user` VALUES (2088135772694282242, 'UR2088135772371320832', 'test_acc1', '$2a$10$cCGC5f4PrfDSjsooNs1mA.2Eqpvu9KezfLmLpDFKBUZRsTJX8mP6m', '测试账户', '', NULL, NULL, NULL, 1, '2026-08-14 13:28:58', '2026-08-14 13:28:58');
 
 -- ----------------------------
 -- Table structure for pay_account_flow
@@ -100,6 +101,10 @@ INSERT INTO `pay_api_log` VALUES (2087358211910606849, 2085297007843151873, 'pay
 INSERT INTO `pay_api_log` VALUES (2087359532688547843, 2085297007843151873, 'pay.create', 'POST', '/open/pay/create', '[serialize error]', '[exception: DataIntegrityViolationException]', 17, '2026-08-12 10:04:28', 'M20260806580286976', 0, '\r\n### Error updating database.  Cause: java.sql.SQLException: Field \'user_id\' doesn\'t have a default value\r\n### The error may exist in com/boot/pay/mapper/PayPaymentOrderMapper.java (best guess)\r\n### The error may involve com.boot.pay.mapper.PayPaymentOrderMapper.insert-Inline\r\n### The error occurred while setting parameters\r\n### SQL: INSERT INTO pay_payment_order  ( id, payment_no, merchant_id, order_no,  amount, status, expire_time,    merchant_payment_no, channel_id, client_ip, subject,     t', 'PostmanRuntime/7.51.1');
 INSERT INTO `pay_api_log` VALUES (2087359624233426947, 2085297007843151873, 'pay.create', 'POST', '/open/pay/create', '[serialize error]', '[exception: DataIntegrityViolationException]', 12, '2026-08-12 10:04:50', 'M20260806580286976', 0, '\r\n### Error updating database.  Cause: java.sql.SQLException: Field \'user_id\' doesn\'t have a default value\r\n### The error may exist in com/boot/pay/mapper/PayPaymentOrderMapper.java (best guess)\r\n### The error may involve com.boot.pay.mapper.PayPaymentOrderMapper.insert-Inline\r\n### The error occurred while setting parameters\r\n### SQL: INSERT INTO pay_payment_order  ( id, payment_no, merchant_id, order_no,  amount, status, expire_time,    merchant_payment_no, channel_id, client_ip, subject,     t', 'PostmanRuntime/7.51.1');
 INSERT INTO `pay_api_log` VALUES (2087359887149178882, 2085297007843151873, 'pay.create', 'POST', '/open/pay/create', '[serialize error]', '{\"code\":0,\"data\":{\"amount\":99.00,\"expireTime\":\"2026-08-12 10:35:53.027\",\"paymentNo\":\"PAY20260812158939648\",\"status\":0,\"statusDesc\":\"待支付\"},\"message\":\"success\"}', 19, '2026-08-12 10:05:53', 'M20260806580286976', 0, NULL, 'PostmanRuntime/7.51.1');
+INSERT INTO `pay_api_log` VALUES (2087422042573692930, 2085297007843151873, 'pay.query', 'GET', '/open/pay/query/PAY20260812230604800', '[serialize error]', '[exception: BusinessException]', 16, '2026-08-12 14:12:52', 'M20260806580286976', 0, '订单不存在', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36');
+INSERT INTO `pay_api_log` VALUES (2087438598628237314, 2085297007843151873, 'pay.query', 'GET', '/open/pay/query/PAY20260812158939648', '[serialize error]', '{\"code\":0,\"data\":{\"amount\":99.00,\"channelName\":\"余额支付\",\"clientIp\":\"0:0:0:0:0:0:0:1\",\"createTime\":\"2026-08-12 10:05:53\",\"expireTime\":\"2026-08-12 10:35:53\",\"feeAmount\":0.59,\"orderNo\":\"ORD1786500341434\",\"paymentNo\":\"PAY20260812158939648\",\"settleAmount\":98.41,\"status\":0,\"statusDesc\":\"待支付\",\"subject\":\"测试商品\"},\"message\":\"success\"}', 14, '2026-08-12 15:18:39', 'M20260806580286976', 0, NULL, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36');
+INSERT INTO `pay_api_log` VALUES (2087825115344146433, 2085297007843151873, 'pay.create', 'POST', '/open/pay/create', '[serialize error]', '{\"code\":0,\"data\":{\"amount\":66.00,\"expireTime\":\"2026-08-13 16:55:32.052\",\"paymentNo\":\"PAY20260813264978944\",\"status\":0,\"statusDesc\":\"待支付\"},\"message\":\"success\"}', 90, '2026-08-13 16:54:32', 'M20260806580286976', 0, NULL, 'PostmanRuntime/7.51.1');
+INSERT INTO `pay_api_log` VALUES (2087826118361616386, 2085297007843151873, 'pay.query', 'GET', '/open/pay/query/PAY20260813264978944', '[serialize error]', '{\"code\":0,\"data\":{\"amount\":66.00,\"channelName\":\"余额支付\",\"clientIp\":\"0:0:0:0:0:0:0:1\",\"createTime\":\"2026-08-13 16:54:32\",\"expireTime\":\"2026-08-13 16:55:32\",\"feeAmount\":0.40,\"orderNo\":\"ORDEXP1786611181215\",\"paymentNo\":\"PAY20260813264978944\",\"settleAmount\":65.60,\"status\":4,\"statusDesc\":\"已关闭\",\"subject\":\"超时测试商品\"},\"message\":\"success\"}', 9, '2026-08-13 16:58:31', 'M20260806580286976', 0, NULL, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36');
 
 -- ----------------------------
 -- Table structure for pay_merchant
@@ -157,6 +162,9 @@ CREATE TABLE `pay_merchant_account`  (
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `version` int NULL DEFAULT 0 COMMENT '乐观锁版本号',
+  `total_income` decimal(12, 2) NULL DEFAULT 0.00 COMMENT '累计收入',
+  `total_expense` decimal(12, 2) NULL DEFAULT 0.00 COMMENT '累计支出（退款）',
+  `total_fee` decimal(12, 2) NULL DEFAULT 0.00 COMMENT '累计手续费支出',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_merchant_id`(`merchant_id` ASC) USING BTREE,
   UNIQUE INDEX `uk_account_no`(`account_no` ASC) USING BTREE
@@ -165,8 +173,8 @@ CREATE TABLE `pay_merchant_account`  (
 -- ----------------------------
 -- Records of pay_merchant_account
 -- ----------------------------
-INSERT INTO `pay_merchant_account` VALUES (2085555584205914113, 2085297007843151873, 'MA20260807194711552', 0.00, 0.00, 1, '2026-08-07 10:36:13', '2026-08-07 10:36:13', 0);
-INSERT INTO `pay_merchant_account` VALUES (2085618404968710146, 2085617758337056770, 'MA20260807970074112', 0.00, 0.00, 1, '2026-08-07 14:45:51', '2026-08-07 14:45:51', 0);
+INSERT INTO `pay_merchant_account` VALUES (2085555584205914113, 2085297007843151873, 'MA20260807194711552', 0.00, 0.00, 1, '2026-08-07 10:36:13', '2026-08-07 10:36:13', 0, 0.00, 0.00, 0.00);
+INSERT INTO `pay_merchant_account` VALUES (2085618404968710146, 2085617758337056770, 'MA20260807970074112', 0.00, 0.00, 1, '2026-08-07 14:45:51', '2026-08-07 14:45:51', 0, 0.00, 0.00, 0.00);
 
 -- ----------------------------
 -- Table structure for pay_merchant_secret_history
@@ -278,7 +286,8 @@ CREATE TABLE `pay_payment_order`  (
 -- ----------------------------
 -- Records of pay_payment_order
 -- ----------------------------
-INSERT INTO `pay_payment_order` VALUES (2087359887149178881, 'PAY20260812158939648', 2085297007843151873, 'ORD1786500341434', 0, 99.00, 0, '2026-08-12 10:35:53', NULL, '2026-08-12 10:05:53', '2026-08-12 10:05:53', 'ORD1786500341434', 1, '0:0:0:0:0:0:0:1', '测试商品', NULL, NULL, NULL, NULL, '2026-08-12 10:35:53', NULL, NULL, 0.59, 98.41, 0, NULL, NULL);
+INSERT INTO `pay_payment_order` VALUES (2087359887149178881, 'PAY20260812158939648', 2085297007843151873, 'ORD1786500341434', 0, 99.00, 4, '2026-08-12 10:35:53', NULL, '2026-08-12 10:05:53', '2026-08-13 15:23:50', 'ORD1786500341434', 1, '0:0:0:0:0:0:0:1', '测试商品', NULL, NULL, NULL, NULL, '2026-08-12 10:35:53', '2026-08-13 15:23:49', '超时关闭', 0.59, 98.41, 0, NULL, NULL);
+INSERT INTO `pay_payment_order` VALUES (2087825115314786306, 'PAY20260813264978944', 2085297007843151873, 'ORDEXP1786611181215', 0, 66.00, 4, '2026-08-13 16:55:32', NULL, '2026-08-13 16:54:32', '2026-08-13 16:55:51', 'ORDEXP1786611181215', 1, '0:0:0:0:0:0:0:1', '超时测试商品', NULL, NULL, NULL, NULL, '2026-08-13 16:55:32', '2026-08-13 16:55:51', '超时关闭', 0.40, 65.60, 0, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for pay_recharge_order
@@ -357,5 +366,6 @@ CREATE TABLE `pay_user_account`  (
 -- ----------------------------
 -- Records of pay_user_account
 -- ----------------------------
+INSERT INTO `pay_user_account` VALUES (2088135772874637314, 2088135772694282242, 'UA20260814858355712', 0.00, 0.00, 1, '2026-08-14 13:28:58', '2026-08-14 14:04:49', NULL, 0, 0.00, 0.00, '$2a$10$iG4KfaugxNInyHopwbW0q.nLFgKoZ6qLL3UTJXiYnP/8wEghM9oHu', '张三', '110101199001011234', 1, 50000.00, 0.00, NULL);
 
 SET FOREIGN_KEY_CHECKS = 1;
