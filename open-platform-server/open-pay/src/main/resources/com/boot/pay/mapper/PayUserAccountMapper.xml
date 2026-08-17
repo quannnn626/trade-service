@@ -32,4 +32,16 @@
         total_income,total_expense,pay_password,real_name,id_card,
         real_name_auth,daily_limit,daily_used,daily_date
     </sql>
+
+    <update id="deductBalance">
+        UPDATE pay_user_account
+        SET balance       = balance - #{amount},
+            version       = version + 1,
+            total_expense = total_expense + #{amount},
+            daily_used    = daily_used + #{amount},
+            daily_date    = CURDATE()
+        WHERE user_id = #{userId}
+          AND version = #{oldVersion}
+          AND balance >= #{amount}
+    </update>
 </mapper>

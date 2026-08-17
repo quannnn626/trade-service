@@ -2,7 +2,9 @@ package com.boot.pay.service;
 
 import com.boot.pay.domain.PayPaymentOrder;
 import com.boot.pay.payment.dto.CreatePayDTO;
+import com.boot.pay.payment.dto.ExecutePayDTO;
 import com.boot.pay.payment.vo.CreatePayVO;
+import com.boot.pay.payment.vo.ExecutePayVO;
 import com.boot.pay.payment.vo.PayOrderVO;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -48,4 +50,27 @@ public interface PayPaymentOrderService extends IService<PayPaymentOrder> {
      * @return 本次关闭的订单数量
      */
     int closeExpiredOrders();
+
+    /**
+     * 执行支付（支付执行引擎核心入口）
+     * <p>
+     * 外层负责支付密码校验、分布式锁与乐观锁重试；资金操作在独立事务中执行，
+     * 事务提交后释放锁，保证"锁内处理、事务内动账"。
+     *
+     * @param dto        请求参数
+     * @param merchantId 商户 ID（校验订单归属）
+     * @return 支付结果
+     */
+    ExecutePayVO executePayment(ExecutePayDTO dto, Long merchantId);
+
+    /**
+     * 支付资金操作（独立事务，动账必须全部成功或全部回滚）
+     * <p>
+     * 仅供 {@link #executePayment} 在锁内调用，通过代理调用使 @Transactional 生效，不对外暴露。
+     *
+     * @param dto        请求参数
+     * @param merchantId 商户 ID（校验订单归属）
+     * @return 支付结果
+     */
+    ExecutePayVO executePaymentTx(ExecutePayDTO dto, Long merchantId);
 }

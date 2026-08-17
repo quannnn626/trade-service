@@ -4,7 +4,9 @@ import com.boot.pay.annotation.OpenApi;
 import com.boot.common.result.Result;
 import com.boot.pay.context.MerchantContext;
 import com.boot.pay.payment.dto.CreatePayDTO;
+import com.boot.pay.payment.dto.ExecutePayDTO;
 import com.boot.pay.payment.vo.CreatePayVO;
+import com.boot.pay.payment.vo.ExecutePayVO;
 import com.boot.pay.payment.vo.PayOrderVO;
 import com.boot.pay.service.PayPaymentOrderService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,6 +42,17 @@ public class PayOrderController {
         String clientIp = request.getRemoteAddr();
         return Result.success(
                 payPaymentOrderService.createPayment(dto, ctx.getMerchantId(), ctx.getMerchantNo(), clientIp));
+    }
+
+    /**
+     * 执行支付（余额支付核心链路）
+     */
+    @OpenApi("pay.execute")
+    @PostMapping("/execute")
+    public Result<ExecutePayVO> execute(@Valid @RequestBody ExecutePayDTO dto,
+                                        HttpServletRequest request) {
+        MerchantContext ctx = (MerchantContext) request.getAttribute("merchantContext");
+        return Result.success(payPaymentOrderService.executePayment(dto, ctx.getMerchantId()));
     }
 
     /**

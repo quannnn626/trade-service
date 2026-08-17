@@ -15,6 +15,12 @@ public final class AccountConstants {
     /** 实名用户单日支付限额 */
     public static final BigDecimal DAILY_LIMIT_REAL_NAME = new BigDecimal("50000.00");
 
+    /** 账户类型：用户 */
+    public static final int ACCOUNT_TYPE_USER = 1;
+
+    /** 账户类型：商户 */
+    public static final int ACCOUNT_TYPE_MERCHANT = 2;
+
     private AccountConstants() {
     }
 }
