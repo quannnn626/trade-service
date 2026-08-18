@@ -25,4 +25,17 @@ public interface PayAccountFlowService extends IService<PayAccountFlow> {
      */
     IPage<FlowVO> listPage(Integer page, Integer pageSize, Integer accountType, Integer flowType,
                            LocalDateTime startTime, LocalDateTime endTime);
+
+    /**
+     * 按账户编号分页查询资金流水（用户钱包 UA 开头，商户账户 MA 开头）
+     *
+     * @param accountNo 账户编号
+     * @param page      页码，从 1 开始
+     * @param pageSize  每页条数
+     * @param flowType  流水类型（可空）
+     * @param startTime 开始时间（可空）
+     * @param endTime   结束时间（可空）
+     */
+    IPage<FlowVO> listPageByAccountNo(String accountNo, Integer page, Integer pageSize,
+                                      Integer flowType, LocalDateTime startTime, LocalDateTime endTime);
 }

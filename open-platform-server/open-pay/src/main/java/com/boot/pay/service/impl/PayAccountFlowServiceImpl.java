@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.boot.common.exception.BusinessException;
 import com.boot.pay.account.constants.AccountConstants;
 import com.boot.pay.account.enums.AccountFlowTypeEnum;
 import com.boot.pay.domain.PayAccountFlow;
@@ -18,7 +19,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,9 +39,53 @@ public class PayAccountFlowServiceImpl extends ServiceImpl<PayAccountFlowMapper,
     @Override
     public IPage<FlowVO> listPage(Integer page, Integer pageSize, Integer accountType, Integer flowType,
                                   LocalDateTime startTime, LocalDateTime endTime) {
+        Page<PayAccountFlow> result = queryFlowPage(accountType, null, flowType, startTime, endTime, page, pageSize);
+        return convertPage(result, null);
+    }
+
+    @Override
+    public IPage<FlowVO> listPageByAccountNo(String accountNo, Integer page, Integer pageSize,
+                                             Integer flowType, LocalDateTime startTime, LocalDateTime endTime) {
+        Integer accountType;
+        Long accountId;
+        if (accountNo != null && accountNo.startsWith("UA")) {
+            PayUserAccount userAccount = payUserAccountMapper.selectOne(
+                    new LambdaQueryWrapper<PayUserAccount>()
+                            .eq(PayUserAccount::getAccountNo, accountNo));
+            if (userAccount == null) {
+                throw new BusinessException("账户不存在: " + accountNo);
+            }
+            accountType = AccountConstants.ACCOUNT_TYPE_USER;
+            accountId = userAccount.getId();
+        } else if (accountNo != null && accountNo.startsWith("MA")) {
+            PayMerchantAccount merchantAccount = payMerchantAccountMapper.selectOne(
+                    new LambdaQueryWrapper<PayMerchantAccount>()
+                            .eq(PayMerchantAccount::getAccountNo, accountNo));
+            if (merchantAccount == null) {
+                throw new BusinessException("账户不存在: " + accountNo);
+            }
+            accountType = AccountConstants.ACCOUNT_TYPE_MERCHANT;
+            accountId = merchantAccount.getId();
+        } else {
+            throw new BusinessException("账户不存在: " + accountNo);
+        }
+
+        Page<PayAccountFlow> result = queryFlowPage(accountType, accountId, flowType, startTime, endTime, page, pageSize);
+        return convertPage(result, accountNo);
+    }
+
+    /**
+     * 按条件分页查询流水（accountId 为空时不限定账户）
+     */
+    private Page<PayAccountFlow> queryFlowPage(Integer accountType, Long accountId, Integer flowType,
+                                               LocalDateTime startTime, LocalDateTime endTime,
+                                               Integer page, Integer pageSize) {
         LambdaQueryWrapper<PayAccountFlow> wrapper = new LambdaQueryWrapper<>();
         if (accountType != null) {
             wrapper.eq(PayAccountFlow::getAccountType, accountType);
+        }
+        if (accountId != null) {
+            wrapper.eq(PayAccountFlow::getAccountId, accountId);
         }
         if (flowType != null) {
             wrapper.eq(PayAccountFlow::getFlowType, flowType);
@@ -53,17 +97,24 @@ public class PayAccountFlowServiceImpl extends ServiceImpl<PayAccountFlowMapper,
             wrapper.le(PayAccountFlow::getCreateTime, endTime);
         }
         wrapper.orderByDesc(PayAccountFlow::getCreateTime);
+        return this.page(new Page<>(page, pageSize), wrapper);
+    }
 
-        Page<PayAccountFlow> pageParam = new Page<>(page, pageSize);
-        Page<PayAccountFlow> result = this.page(pageParam, wrapper);
-
-        Map<String, String> accountNoMap = buildAccountNoMap(result.getRecords());
+    /**
+     * 流水实体转 VO：fixedAccountNo 为空时按账户类型批量回填账户编号
+     */
+    private IPage<FlowVO> convertPage(Page<PayAccountFlow> result, String fixedAccountNo) {
+        Map<String, String> accountNoMap = fixedAccountNo == null
+                ? buildAccountNoMap(result.getRecords())
+                : Map.of();
 
         return result.convert(f -> FlowVO.builder()
                 .flowNo(f.getFlowNo())
                 .accountType(f.getAccountType())
                 .accountTypeName(buildAccountTypeName(f.getAccountType()))
-                .accountNo(accountNoMap.get(buildAccountNoKey(f.getAccountType(), f.getAccountId())))
+                .accountNo(fixedAccountNo != null
+                        ? fixedAccountNo
+                        : accountNoMap.get(buildAccountNoKey(f.getAccountType(), f.getAccountId())))
                 .paymentNo(f.getPaymentNo())
                 .flowType(f.getFlowType())
                 .flowTypeName(buildFlowTypeName(f.getFlowType()))

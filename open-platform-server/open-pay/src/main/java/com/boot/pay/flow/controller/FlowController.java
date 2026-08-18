@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,5 +37,19 @@ public class FlowController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
         return Result.success(payAccountFlowService.listPage(page, pageSize, accountType, flowType, startTime, endTime));
+    }
+
+    /**
+     * 按账户编号分页查询流水（用户钱包 UA 开头，商户账户 MA 开头）
+     */
+    @GetMapping("/list-by-account/{accountNo}")
+    public Result<IPage<FlowVO>> listByAccount(
+            @PathVariable String accountNo,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) Integer flowType,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
+        return Result.success(payAccountFlowService.listPageByAccountNo(accountNo, page, pageSize, flowType, startTime, endTime));
     }
 }
