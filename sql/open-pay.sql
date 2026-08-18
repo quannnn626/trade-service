@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 15/08/2026 15:44:23
+ Date: 18/08/2026 11:15:07
 */
 
 SET NAMES utf8mb4;
@@ -66,12 +66,17 @@ CREATE TABLE `pay_account_flow`  (
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_flow_no`(`flow_no` ASC) USING BTREE,
-  INDEX `idx_payment_no`(`payment_no` ASC) USING BTREE
+  INDEX `idx_payment_no`(`payment_no` ASC) USING BTREE,
+  INDEX `idx_account_time`(`account_id` ASC, `create_time` ASC) USING BTREE,
+  INDEX `idx_flow_type`(`flow_type` ASC) USING BTREE,
+  INDEX `idx_account_type_time`(`account_type` ASC, `create_time` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '账户资金流水表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------
 -- Records of pay_account_flow
 -- ----------------------------
+INSERT INTO `pay_account_flow` VALUES (2089255272188764161, 'FLW20260817206962688', 1, 2088135772874637314, 'PAY20260817259814912', 1, -99.00, 1000.00, 901.00, '支付消费-测试商品', '2026-08-17 15:37:28');
+INSERT INTO `pay_account_flow` VALUES (2089255272251678721, 'FLW20260817269877248', 2, 2085555584205914113, 'PAY20260817259814912', 2, 98.41, 0.00, 98.41, '收款-测试商品', '2026-08-17 15:37:28');
 
 -- ----------------------------
 -- Table structure for pay_api_log
@@ -105,6 +110,12 @@ INSERT INTO `pay_api_log` VALUES (2087422042573692930, 2085297007843151873, 'pay
 INSERT INTO `pay_api_log` VALUES (2087438598628237314, 2085297007843151873, 'pay.query', 'GET', '/open/pay/query/PAY20260812158939648', '[serialize error]', '{\"code\":0,\"data\":{\"amount\":99.00,\"channelName\":\"余额支付\",\"clientIp\":\"0:0:0:0:0:0:0:1\",\"createTime\":\"2026-08-12 10:05:53\",\"expireTime\":\"2026-08-12 10:35:53\",\"feeAmount\":0.59,\"orderNo\":\"ORD1786500341434\",\"paymentNo\":\"PAY20260812158939648\",\"settleAmount\":98.41,\"status\":0,\"statusDesc\":\"待支付\",\"subject\":\"测试商品\"},\"message\":\"success\"}', 14, '2026-08-12 15:18:39', 'M20260806580286976', 0, NULL, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36');
 INSERT INTO `pay_api_log` VALUES (2087825115344146433, 2085297007843151873, 'pay.create', 'POST', '/open/pay/create', '[serialize error]', '{\"code\":0,\"data\":{\"amount\":66.00,\"expireTime\":\"2026-08-13 16:55:32.052\",\"paymentNo\":\"PAY20260813264978944\",\"status\":0,\"statusDesc\":\"待支付\"},\"message\":\"success\"}', 90, '2026-08-13 16:54:32', 'M20260806580286976', 0, NULL, 'PostmanRuntime/7.51.1');
 INSERT INTO `pay_api_log` VALUES (2087826118361616386, 2085297007843151873, 'pay.query', 'GET', '/open/pay/query/PAY20260813264978944', '[serialize error]', '{\"code\":0,\"data\":{\"amount\":66.00,\"channelName\":\"余额支付\",\"clientIp\":\"0:0:0:0:0:0:0:1\",\"createTime\":\"2026-08-13 16:54:32\",\"expireTime\":\"2026-08-13 16:55:32\",\"feeAmount\":0.40,\"orderNo\":\"ORDEXP1786611181215\",\"paymentNo\":\"PAY20260813264978944\",\"settleAmount\":65.60,\"status\":4,\"statusDesc\":\"已关闭\",\"subject\":\"超时测试商品\"},\"message\":\"success\"}', 9, '2026-08-13 16:58:31', 'M20260806580286976', 0, NULL, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/151.0.0.0 Safari/537.36');
+INSERT INTO `pay_api_log` VALUES (2089254217342279681, 2085297007843151873, 'pay.create', 'POST', '/open/pay/create', '[serialize error]', '{\"code\":0,\"data\":{\"amount\":99.00,\"expireTime\":\"2026-08-17 16:03:16.518\",\"paymentNo\":\"PAY20260817259814912\",\"status\":0,\"statusDesc\":\"待支付\"},\"message\":\"success\"}', 100, '2026-08-17 15:33:16', 'M20260806580286976', 0, NULL, 'PostmanRuntime/7.51.1');
+INSERT INTO `pay_api_log` VALUES (2089255272318787585, 2085297007843151873, 'pay.execute', 'POST', '/open/pay/execute', '[serialize error]', '{\"code\":0,\"data\":{\"amount\":99.00,\"payTime\":\"2026-08-17 15:37:28.021\",\"paymentNo\":\"PAY20260817259814912\",\"status\":2,\"statusDesc\":\"支付成功\"},\"message\":\"success\"}', 176, '2026-08-17 15:37:28', 'M20260806580286976', 0, NULL, 'PostmanRuntime/7.51.1');
+INSERT INTO `pay_api_log` VALUES (2089527539984609282, 2085297007843151873, 'pay.create', 'POST', '/open/pay/create', '[serialize error]', '{\"code\":0,\"data\":{\"amount\":99.00,\"expireTime\":\"2026-08-18 10:09:21.721\",\"paymentNo\":\"PAY20260818931418624\",\"status\":0,\"statusDesc\":\"待支付\"},\"message\":\"success\"}', 94, '2026-08-18 09:39:21', 'M20260806580286976', 0, NULL, 'PostmanRuntime/7.51.1');
+INSERT INTO `pay_api_log` VALUES (2089527915064438786, 2085297007843151873, 'pay.execute', 'POST', '/open/pay/execute', '[serialize error]', '[exception: BusinessException]', 84, '2026-08-18 09:40:51', 'M20260806580286976', 0, '支付密码错误', 'PostmanRuntime/7.51.1');
+INSERT INTO `pay_api_log` VALUES (2089529742765961217, 2085297007843151873, 'pay.execute', 'POST', '/open/pay/execute', '[serialize error]', '[exception: BusinessException]', 69, '2026-08-18 09:48:06', 'M20260806580286976', 0, '支付密码错误', 'PostmanRuntime/7.51.1');
+INSERT INTO `pay_api_log` VALUES (2089529848294649858, 2085297007843151873, 'pay.execute', 'POST', '/open/pay/execute', '[serialize error]', '[exception: BusinessException]', 96, '2026-08-18 09:48:32', 'M20260806580286976', 0, '订单状态异常（当前：支付成功）', 'PostmanRuntime/7.51.1');
 
 -- ----------------------------
 -- Table structure for pay_merchant
@@ -173,7 +184,7 @@ CREATE TABLE `pay_merchant_account`  (
 -- ----------------------------
 -- Records of pay_merchant_account
 -- ----------------------------
-INSERT INTO `pay_merchant_account` VALUES (2085555584205914113, 2085297007843151873, 'MA20260807194711552', 0.00, 0.00, 1, '2026-08-07 10:36:13', '2026-08-07 10:36:13', 0, 0.00, 0.00, 0.00);
+INSERT INTO `pay_merchant_account` VALUES (2085555584205914113, 2085297007843151873, 'MA20260807194711552', 98.41, 0.00, 1, '2026-08-07 10:36:13', '2026-08-17 15:37:28', 1, 98.41, 0.00, 0.00);
 INSERT INTO `pay_merchant_account` VALUES (2085618404968710146, 2085617758337056770, 'MA20260807970074112', 0.00, 0.00, 1, '2026-08-07 14:45:51', '2026-08-07 14:45:51', 0, 0.00, 0.00, 0.00);
 
 -- ----------------------------
@@ -288,6 +299,8 @@ CREATE TABLE `pay_payment_order`  (
 -- ----------------------------
 INSERT INTO `pay_payment_order` VALUES (2087359887149178881, 'PAY20260812158939648', 2085297007843151873, 'ORD1786500341434', 0, 99.00, 4, '2026-08-12 10:35:53', NULL, '2026-08-12 10:05:53', '2026-08-13 15:23:50', 'ORD1786500341434', 1, '0:0:0:0:0:0:0:1', '测试商品', NULL, NULL, NULL, NULL, '2026-08-12 10:35:53', '2026-08-13 15:23:49', '超时关闭', 0.59, 98.41, 0, NULL, NULL);
 INSERT INTO `pay_payment_order` VALUES (2087825115314786306, 'PAY20260813264978944', 2085297007843151873, 'ORDEXP1786611181215', 0, 66.00, 4, '2026-08-13 16:55:32', NULL, '2026-08-13 16:54:32', '2026-08-13 16:55:51', 'ORDEXP1786611181215', 1, '0:0:0:0:0:0:0:1', '超时测试商品', NULL, NULL, NULL, NULL, '2026-08-13 16:55:32', '2026-08-13 16:55:51', '超时关闭', 0.40, 65.60, 0, NULL, NULL);
+INSERT INTO `pay_payment_order` VALUES (2089254217287753730, 'PAY20260817259814912', 2085297007843151873, 'ORD1786951901553', 2088135772694282242, 99.00, 2, '2026-08-17 16:03:17', '2026-08-17 15:37:28', '2026-08-17 15:33:16', '2026-08-17 15:37:28', 'ORD1786951901553', 1, '0:0:0:0:0:0:0:1', '测试商品', NULL, NULL, NULL, NULL, '2026-08-17 16:03:17', NULL, NULL, 0.59, 98.41, 0, NULL, NULL);
+INSERT INTO `pay_payment_order` VALUES (2089527539959443457, 'PAY20260818931418624', 2085297007843151873, 'ORD1787017118442', 0, 99.00, 4, '2026-08-18 10:09:22', NULL, '2026-08-18 09:39:21', '2026-08-18 10:09:48', 'ORD1787017118442', 1, '0:0:0:0:0:0:0:1', '测试商品', NULL, NULL, NULL, NULL, '2026-08-18 10:09:22', '2026-08-18 10:09:48', '超时关闭', 0.59, 98.41, 0, NULL, NULL);
 
 -- ----------------------------
 -- Table structure for pay_recharge_order
@@ -366,6 +379,6 @@ CREATE TABLE `pay_user_account`  (
 -- ----------------------------
 -- Records of pay_user_account
 -- ----------------------------
-INSERT INTO `pay_user_account` VALUES (2088135772874637314, 2088135772694282242, 'UA20260814858355712', 0.00, 0.00, 1, '2026-08-14 13:28:58', '2026-08-14 14:04:49', NULL, 0, 0.00, 0.00, '$2a$10$iG4KfaugxNInyHopwbW0q.nLFgKoZ6qLL3UTJXiYnP/8wEghM9oHu', '张三', '110101199001011234', 1, 50000.00, 0.00, NULL);
+INSERT INTO `pay_user_account` VALUES (2088135772874637314, 2088135772694282242, 'UA20260814858355712', 901.00, 0.00, 1, '2026-08-14 13:28:58', '2026-08-17 15:37:28', NULL, 1, 0.00, 99.00, '$2a$10$iG4KfaugxNInyHopwbW0q.nLFgKoZ6qLL3UTJXiYnP/8wEghM9oHu', '张三', '110101199001011234', 1, 50000.00, 99.00, '2026-08-17');
 
 SET FOREIGN_KEY_CHECKS = 1;
