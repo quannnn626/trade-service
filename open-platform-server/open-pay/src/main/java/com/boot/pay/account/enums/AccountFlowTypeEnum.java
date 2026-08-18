@@ -44,4 +44,19 @@ public enum AccountFlowTypeEnum {
 
     private final Integer code;
     private final String desc;
+
+    /**
+     * 根据流水类型码反查枚举（不存在返回 null）
+     */
+    public static AccountFlowTypeEnum fromCode(Integer code) {
+        if (code == null) {
+            return null;
+        }
+        for (AccountFlowTypeEnum e : values()) {
+            if (e.code.equals(code)) {
+                return e;
+            }
+        }
+        return null;
+    }
 }
