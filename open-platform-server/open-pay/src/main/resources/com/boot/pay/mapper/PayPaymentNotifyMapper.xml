@@ -16,10 +16,14 @@
             <result property="createTime" column="create_time" />
             <result property="updateTime" column="update_time" />
             <result property="nextRetryTime" column="next_retry_time" />
+            <result property="notifyType" column="notify_type" />
+            <result property="maxRetry" column="max_retry" />
+            <result property="lastError" column="last_error" />
     </resultMap>
 
     <sql id="Base_Column_List">
         id,payment_no,merchant_id,notify_url,request_data,response_data,
-        notify_status,retry_count,create_time,update_time,next_retry_time
+        notify_status,retry_count,create_time,update_time,next_retry_time,
+        notify_type,max_retry,last_error
     </sql>
 </mapper>

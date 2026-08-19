@@ -70,6 +70,21 @@ public class PayPaymentNotify {
      */
     private Date nextRetryTime;
 
+    /**
+     * 通知类型 1-支付成功 2-退款成功 3-退款失败
+     */
+    private Integer notifyType;
+
+    /**
+     * 最大重试次数
+     */
+    private Integer maxRetry;
+
+    /**
+     * 最后一次错误信息
+     */
+    private String lastError;
+
     @Override
     public boolean equals(Object that) {
         if (this == that) {
@@ -92,7 +107,10 @@ public class PayPaymentNotify {
             && (this.getRetryCount() == null ? other.getRetryCount() == null : this.getRetryCount().equals(other.getRetryCount()))
             && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
             && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()))
-            && (this.getNextRetryTime() == null ? other.getNextRetryTime() == null : this.getNextRetryTime().equals(other.getNextRetryTime()));
+            && (this.getNextRetryTime() == null ? other.getNextRetryTime() == null : this.getNextRetryTime().equals(other.getNextRetryTime()))
+            && (this.getNotifyType() == null ? other.getNotifyType() == null : this.getNotifyType().equals(other.getNotifyType()))
+            && (this.getMaxRetry() == null ? other.getMaxRetry() == null : this.getMaxRetry().equals(other.getMaxRetry()))
+            && (this.getLastError() == null ? other.getLastError() == null : this.getLastError().equals(other.getLastError()));
     }
 
     @Override
@@ -110,6 +128,9 @@ public class PayPaymentNotify {
         result = prime * result + ((getCreateTime() == null) ? 0 : getCreateTime().hashCode());
         result = prime * result + ((getUpdateTime() == null) ? 0 : getUpdateTime().hashCode());
         result = prime * result + ((getNextRetryTime() == null) ? 0 : getNextRetryTime().hashCode());
+        result = prime * result + ((getNotifyType() == null) ? 0 : getNotifyType().hashCode());
+        result = prime * result + ((getMaxRetry() == null) ? 0 : getMaxRetry().hashCode());
+        result = prime * result + ((getLastError() == null) ? 0 : getLastError().hashCode());
         return result;
     }
 
@@ -130,6 +151,9 @@ public class PayPaymentNotify {
         sb.append(", createTime=").append(createTime);
         sb.append(", updateTime=").append(updateTime);
         sb.append(", nextRetryTime=").append(nextRetryTime);
+        sb.append(", notifyType=").append(notifyType);
+        sb.append(", maxRetry=").append(maxRetry);
+        sb.append(", lastError=").append(lastError);
         sb.append("]");
         return sb.toString();
     }

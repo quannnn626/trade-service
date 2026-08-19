@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 18/08/2026 11:15:07
+ Date: 19/08/2026 12:37:57
 */
 
 SET NAMES utf8mb4;
@@ -240,11 +240,14 @@ CREATE TABLE `pay_payment_notify`  (
   `notify_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '通知地址',
   `request_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '请求参数',
   `response_data` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '响应结果',
-  `notify_status` int NULL DEFAULT 0 COMMENT '通知状态',
+  `notify_status` int NULL DEFAULT 0 COMMENT '0待通知 1成功 2失败(达上限)',
   `retry_count` int NULL DEFAULT 0 COMMENT '重试次数',
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   `next_retry_time` datetime NULL DEFAULT NULL COMMENT '下次重试时间',
+  `notify_type` int NULL DEFAULT 1 COMMENT '通知类型 1-支付成功 2-退款成功 3-退款失败',
+  `max_retry` int NULL DEFAULT 10 COMMENT '最大重试次数',
+  `last_error` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL COMMENT '最后一次错误信息',
   PRIMARY KEY (`id`) USING BTREE,
   INDEX `idx_payment_no`(`payment_no` ASC) USING BTREE,
   INDEX `idx_next_retry`(`next_retry_time` ASC) USING BTREE
