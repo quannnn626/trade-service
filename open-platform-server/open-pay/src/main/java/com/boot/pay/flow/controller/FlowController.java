@@ -2,8 +2,10 @@ package com.boot.pay.flow.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.boot.common.result.Result;
+import com.boot.pay.flow.vo.DailySummaryVO;
 import com.boot.pay.flow.vo.FlowVO;
 import com.boot.pay.service.PayAccountFlowService;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -51,5 +53,28 @@ public class FlowController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
         return Result.success(payAccountFlowService.listPageByAccountNo(accountNo, page, pageSize, flowType, startTime, endTime));
+    }
+
+    /**
+     * 按支付单号分页查询流水
+     */
+    @GetMapping("/list-by-payment/{paymentNo}")
+    public Result<IPage<FlowVO>> listByPayment(
+            @PathVariable String paymentNo,
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) Integer flowType,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
+        return Result.success(payAccountFlowService.listPageByPaymentNo(paymentNo, page, pageSize, flowType, startTime, endTime));
+    }
+
+    /**
+     * 日汇总报表：按流水类型分组汇总指定日期（默认今天）
+     */
+    @GetMapping("/daily-summary")
+    public Result<DailySummaryVO> dailySummary(
+            @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
+        return Result.success(payAccountFlowService.dailySummary(date));
     }
 }

@@ -22,4 +22,15 @@
         id,flow_no,account_type,account_id,payment_no,flow_type,
         amount,before_balance,after_balance,remark,create_time
     </sql>
+
+    <select id="sumByFlowType" resultType="java.util.Map">
+        SELECT flow_type          AS flowType,
+               COUNT(*)           AS count,
+               SUM(amount)        AS amount
+        FROM pay_account_flow
+        WHERE create_time &gt;= #{startTime}
+          AND create_time &lt; #{endTime}
+        GROUP BY flow_type
+        ORDER BY flow_type
+    </select>
 </mapper>

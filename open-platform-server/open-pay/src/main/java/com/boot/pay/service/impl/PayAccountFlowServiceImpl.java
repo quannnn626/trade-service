@@ -10,11 +10,15 @@ import com.boot.pay.account.enums.AccountFlowTypeEnum;
 import com.boot.pay.domain.PayAccountFlow;
 import com.boot.pay.domain.PayMerchantAccount;
 import com.boot.pay.domain.PayUserAccount;
+import com.boot.pay.flow.vo.DailySummaryItemVO;
+import com.boot.pay.flow.vo.DailySummaryVO;
 import com.boot.pay.flow.vo.FlowVO;
 import com.boot.pay.mapper.PayAccountFlowMapper;
 import com.boot.pay.mapper.PayMerchantAccountMapper;
 import com.boot.pay.mapper.PayUserAccountMapper;
 import com.boot.pay.service.PayAccountFlowService;
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +43,14 @@ public class PayAccountFlowServiceImpl extends ServiceImpl<PayAccountFlowMapper,
     @Override
     public IPage<FlowVO> listPage(Integer page, Integer pageSize, Integer accountType, Integer flowType,
                                   LocalDateTime startTime, LocalDateTime endTime) {
-        Page<PayAccountFlow> result = queryFlowPage(accountType, null, flowType, startTime, endTime, page, pageSize);
+        Page<PayAccountFlow> result = queryFlowPage(accountType, null, null, flowType, startTime, endTime, page, pageSize);
+        return convertPage(result, null);
+    }
+
+    @Override
+    public IPage<FlowVO> listPageByPaymentNo(String paymentNo, Integer page, Integer pageSize,
+                                             Integer flowType, LocalDateTime startTime, LocalDateTime endTime) {
+        Page<PayAccountFlow> result = queryFlowPage(null, null, paymentNo, flowType, startTime, endTime, page, pageSize);
         return convertPage(result, null);
     }
 
@@ -70,15 +81,40 @@ public class PayAccountFlowServiceImpl extends ServiceImpl<PayAccountFlowMapper,
             throw new BusinessException("账户不存在: " + accountNo);
         }
 
-        Page<PayAccountFlow> result = queryFlowPage(accountType, accountId, flowType, startTime, endTime, page, pageSize);
+        Page<PayAccountFlow> result = queryFlowPage(accountType, accountId, null, flowType, startTime, endTime, page, pageSize);
         return convertPage(result, accountNo);
     }
 
+    @Override
+    public DailySummaryVO dailySummary(LocalDate date) {
+        LocalDate summaryDate = date != null ? date : LocalDate.now();
+        LocalDateTime startTime = summaryDate.atStartOfDay();
+        LocalDateTime endTime = summaryDate.plusDays(1).atStartOfDay();
+
+        List<Map<String, Object>> rows = getBaseMapper().sumByFlowType(startTime, endTime);
+        List<DailySummaryItemVO> items = rows.stream().map(row -> {
+            Integer flowType = ((Number) row.get("flowType")).intValue();
+            return DailySummaryItemVO.builder()
+                    .flowType(flowType)
+                    .flowTypeName(buildFlowTypeName(flowType))
+                    .count(((Number) row.get("count")).intValue())
+                    .amount(new BigDecimal(row.get("amount").toString()))
+                    .build();
+        }).collect(Collectors.toList());
+
+        int totalCount = items.stream().mapToInt(DailySummaryItemVO::getCount).sum();
+        return DailySummaryVO.builder()
+                .date(summaryDate.toString())
+                .totalCount(totalCount)
+                .items(items)
+                .build();
+    }
+
     /**
-     * 按条件分页查询流水（accountId 为空时不限定账户）
+     * 按条件分页查询流水（accountId/paymentNo 为空时不限定）
      */
-    private Page<PayAccountFlow> queryFlowPage(Integer accountType, Long accountId, Integer flowType,
-                                               LocalDateTime startTime, LocalDateTime endTime,
+    private Page<PayAccountFlow> queryFlowPage(Integer accountType, Long accountId, String paymentNo,
+                                               Integer flowType, LocalDateTime startTime, LocalDateTime endTime,
                                                Integer page, Integer pageSize) {
         LambdaQueryWrapper<PayAccountFlow> wrapper = new LambdaQueryWrapper<>();
         if (accountType != null) {
@@ -86,6 +122,9 @@ public class PayAccountFlowServiceImpl extends ServiceImpl<PayAccountFlowMapper,
         }
         if (accountId != null) {
             wrapper.eq(PayAccountFlow::getAccountId, accountId);
+        }
+        if (paymentNo != null && !paymentNo.isBlank()) {
+            wrapper.eq(PayAccountFlow::getPaymentNo, paymentNo);
         }
         if (flowType != null) {
             wrapper.eq(PayAccountFlow::getFlowType, flowType);

@@ -3,7 +3,9 @@ package com.boot.pay.service;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.boot.pay.domain.PayAccountFlow;
+import com.boot.pay.flow.vo.DailySummaryVO;
 import com.boot.pay.flow.vo.FlowVO;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -38,4 +40,24 @@ public interface PayAccountFlowService extends IService<PayAccountFlow> {
      */
     IPage<FlowVO> listPageByAccountNo(String accountNo, Integer page, Integer pageSize,
                                       Integer flowType, LocalDateTime startTime, LocalDateTime endTime);
+
+    /**
+     * 按支付单号分页查询资金流水（一笔支付对应多条流水：用户支出 + 商户收入 + 手续费）
+     *
+     * @param paymentNo 支付单号
+     * @param page      页码，从 1 开始
+     * @param pageSize  每页条数
+     * @param flowType  流水类型（可空）
+     * @param startTime 开始时间（可空）
+     * @param endTime   结束时间（可空）
+     */
+    IPage<FlowVO> listPageByPaymentNo(String paymentNo, Integer page, Integer pageSize,
+                                      Integer flowType, LocalDateTime startTime, LocalDateTime endTime);
+
+    /**
+     * 日汇总报表：按流水类型分组汇总指定日期的流水（默认今天）
+     *
+     * @param date 汇总日期 yyyy-MM-dd（可空，默认当天）
+     */
+    DailySummaryVO dailySummary(LocalDate date);
 }
