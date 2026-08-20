@@ -29,6 +29,7 @@ import com.boot.pay.payment.exception.PayOptimisticLockException;
 import com.boot.pay.payment.vo.CreatePayVO;
 import com.boot.pay.payment.vo.ExecutePayVO;
 import com.boot.pay.payment.vo.PayOrderVO;
+import com.boot.pay.service.PayPaymentNotifyService;
 import com.boot.pay.service.PayPaymentOrderService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +71,9 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
 
     @Resource
     private RedissonClient redissonClient;
+
+    @Resource
+    private PayPaymentNotifyService payPaymentNotifyService;
 
     /**
      * 自注入调用事务方法：锁必须等事务提交后再释放，跨 bean 调用才能让 @Transactional 生效
@@ -222,6 +226,7 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
         // 获取分布式锁，同一订单禁止并发执行
         RLock lock = redissonClient.getLock("pay:lock:" + dto.getPaymentNo());
         boolean locked = false;
+        ExecutePayVO result = null;
         try {
             try {
                 locked = lock.tryLock(5, 30, TimeUnit.SECONDS);
@@ -235,7 +240,8 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
             // 乐观锁冲突重试（最多 3 次）：事务方法整体重跑，每次都是新事务、读到最新版本号
             for (int i = 0; i < 3; i++) {
                 try {
-                    return self.executePaymentTx(dto, merchantId);
+                    result = self.executePaymentTx(dto, merchantId);
+                    break;
                 } catch (PayOptimisticLockException e) {
                     log.warn("支付乐观锁冲突 paymentNo={} 第{}次重试，原因: {}",
                             dto.getPaymentNo(), i + 1, e.getMessage());
@@ -255,6 +261,15 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
             if (locked) {
                 lock.unlock();
             }
+        }
+        // 事务已提交、锁已释放：触发回调通知（HTTP 最长 10 秒，不能在锁内执行；失败不影响支付结果，由重试任务兜底）
+        if (result != null) {
+            try {
+                payPaymentNotifyService.triggerNotify(result.getPaymentNo());
+            } catch (Exception e) {
+                log.error("触发回调通知异常 paymentNo={}", result.getPaymentNo(), e);
+            }
+            return result;
         }
         throw new BusinessException("系统异常，请稍后重试");
     }
