@@ -15,6 +15,8 @@ import com.boot.pay.domain.PayPaymentOrder;
 import com.boot.pay.mapper.PayMerchantMapper;
 import com.boot.pay.mapper.PayPaymentNotifyMapper;
 import com.boot.pay.mapper.PayPaymentOrderMapper;
+import com.boot.pay.notify.enums.NotifyStatusEnum;
+import com.boot.pay.notify.enums.NotifyTypeEnum;
 import com.boot.pay.service.PayPaymentNotifyService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -72,8 +75,8 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
         record.setPaymentNo(paymentNo);
         record.setMerchantId(order.getMerchantId());
         record.setNotifyUrl(order.getNotifyUrl());
-        record.setNotifyType(1); // 1-支付成功
-        record.setNotifyStatus(0); // 0-待通知
+        record.setNotifyType(NotifyTypeEnum.PAY_SUCCESS.getCode());
+        record.setNotifyStatus(NotifyStatusEnum.WAIT.getCode());
         record.setRetryCount(0);
         record.setMaxRetry(10);
         record.setNextRetryTime(new Date());
@@ -81,6 +84,29 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
 
         log.info("创建回调通知记录并立即发送 paymentNo={} notifyUrl={}", paymentNo, order.getNotifyUrl());
         sendNotify(record);
+    }
+
+    @Override
+    public void retryNotify() {
+        // 扫描到期的待通知记录，最早到期优先
+        List<PayPaymentNotify> waitList = baseMapper.selectList(
+                new LambdaQueryWrapper<PayPaymentNotify>()
+                        .eq(PayPaymentNotify::getNotifyStatus, NotifyStatusEnum.WAIT.getCode())
+                        .le(PayPaymentNotify::getNextRetryTime, new Date())
+                        .orderByAsc(PayPaymentNotify::getNextRetryTime)
+                        .last("LIMIT 100"));
+        if (waitList.isEmpty()) {
+            return;
+        }
+        log.info("回调重试任务扫描到 {} 条待重试通知", waitList.size());
+        for (PayPaymentNotify record : waitList) {
+            try {
+                sendNotify(record);
+            } catch (Exception e) {
+                log.error("回调重试发送异常 paymentNo={} 原因: {}",
+                        record.getPaymentNo(), e.getMessage(), e);
+            }
+        }
     }
 
     /**
@@ -145,7 +171,7 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
 
         // 判定成功：HTTP 200 且 body JSON code == 0（与平台 Result 成功码约定一致）
         if (httpStatus == 200 && isSuccessCode(responseBody)) {
-            record.setNotifyStatus(1); // 1-成功
+            record.setNotifyStatus(NotifyStatusEnum.SUCCESS.getCode());
             record.setNextRetryTime(null);
             updateById(record);
             log.info("回调通知成功 paymentNo={} notifyUrl={}", record.getPaymentNo(), record.getNotifyUrl());
@@ -182,7 +208,7 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
 
         int maxRetry = record.getMaxRetry() == null ? 10 : record.getMaxRetry();
         if (retryCount >= maxRetry) {
-            record.setNotifyStatus(2); // 2-失败（达上限）
+            record.setNotifyStatus(NotifyStatusEnum.FAILED.getCode());
             record.setNextRetryTime(null);
             log.error("回调通知达重试上限，待人工介入 paymentNo={} retryCount={} error={}",
                     record.getPaymentNo(), retryCount, errorMsg);

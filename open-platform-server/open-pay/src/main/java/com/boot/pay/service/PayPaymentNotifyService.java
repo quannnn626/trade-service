@@ -18,4 +18,9 @@ public interface PayPaymentNotifyService extends IService<PayPaymentNotify> {
      */
     void triggerNotify(String paymentNo);
 
+    /**
+     * 重试待通知的回调：扫描到期的通知记录并重新发送（定时任务调用）
+     */
+    void retryNotify();
+
 }
