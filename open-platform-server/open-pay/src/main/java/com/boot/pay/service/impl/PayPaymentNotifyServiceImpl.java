@@ -37,7 +37,7 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
         implements PayPaymentNotifyService {
 
     /**
-     * 退避间隔（分钟）：第 i 次失败后的等待时长（i 从 1 开始），与开发计划 7.3 对齐
+     * 退避间隔（分钟）：第 i 次失败后的等待时长
      */
     private static final int[] RETRY_DELAY_MINUTES = {1, 2, 5, 10, 30, 60, 120, 360, 720};
 
@@ -54,7 +54,6 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
 
     @Override
     public void triggerNotify(String paymentNo) {
-        // ① 查询订单
         PayPaymentOrder order = payPaymentOrderMapper.selectOne(
                 new LambdaQueryWrapper<PayPaymentOrder>()
                         .eq(PayPaymentOrder::getPaymentNo, paymentNo));
@@ -68,7 +67,7 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
             return;
         }
 
-        // ② 创建回调通知记录（待通知，立即执行）
+        // 创建待通知记录，立即执行
         PayPaymentNotify record = new PayPaymentNotify();
         record.setPaymentNo(paymentNo);
         record.setMerchantId(order.getMerchantId());
@@ -80,7 +79,6 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
         record.setNextRetryTime(new Date());
         save(record);
 
-        // ③ 立即发送第一次通知
         log.info("创建回调通知记录并立即发送 paymentNo={} notifyUrl={}", paymentNo, order.getNotifyUrl());
         sendNotify(record);
     }
@@ -91,7 +89,6 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
      * @param record 通知记录（内部更新后落库）
      */
     private void sendNotify(PayPaymentNotify record) {
-        // ① 查询订单与商户（取回调参数与签名密钥）
         PayPaymentOrder order = payPaymentOrderMapper.selectOne(
                 new LambdaQueryWrapper<PayPaymentOrder>()
                         .eq(PayPaymentOrder::getPaymentNo, record.getPaymentNo()));
@@ -111,7 +108,7 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
             return;
         }
 
-        // ② 组装回调参数 + 签名（HMAC-SHA256，复用 SignUtil）
+        // 组装参数并签名（HMAC-SHA256，复用 SignUtil）
         Map<String, Object> params = new HashMap<>();
         params.put("notifyType", "PAY_SUCCESS");
         params.put("paymentNo", order.getPaymentNo());
@@ -127,7 +124,7 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
         params.put("sign", SignUtil.generateSign(params, merchant.getAppSecret()));
         String requestBody = JSON.toJSONString(params);
 
-        // ③ POST 发送（JSON，超时 10 秒）
+        // 发送（JSON，10 秒超时）
         String responseBody = null;
         int httpStatus = -1;
         try {
@@ -146,7 +143,7 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
         record.setRequestData(requestBody);
         record.setResponseData(responseBody);
 
-        // ④ 判定：HTTP 200 且 body 为 JSON 且 code == 0（与平台 Result 成功码约定一致）
+        // 判定成功：HTTP 200 且 body JSON code == 0（与平台 Result 成功码约定一致）
         if (httpStatus == 200 && isSuccessCode(responseBody)) {
             record.setNotifyStatus(1); // 1-成功
             record.setNextRetryTime(null);
@@ -155,14 +152,13 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
             return;
         }
 
-        // ⑤ 失败：重试次数 +1，按退避策略计算下次重试时间
         log.warn("回调通知失败 paymentNo={} httpStatus={} response={}",
                 record.getPaymentNo(), httpStatus, responseBody);
         markFailed(record, "HTTP " + httpStatus + " 响应: " + StrUtil.maxLength(responseBody, 500));
     }
 
     /**
-     * 判定回调响应是否成功：body 为 JSON 且 code == 0（与平台 Result 成功码约定一致）
+     * 判定回调响应成功：body 为 JSON 且 code == 0（与平台 Result 成功码约定一致）
      */
     private boolean isSuccessCode(String responseBody) {
         if (StrUtil.isBlank(responseBody)) {
@@ -177,7 +173,7 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
     }
 
     /**
-     * 标记通知失败：重试次数 +1，按退避策略计算下次重试时间；达上限则标记失败（人工介入）
+     * 标记失败：重试 +1、退避算下次时间；达上限标记人工介入
      */
     private void markFailed(PayPaymentNotify record, String errorMsg) {
         int retryCount = record.getRetryCount() == null ? 0 : record.getRetryCount() + 1;
