@@ -1,6 +1,7 @@
 package com.boot.pay.service;
 
 import com.boot.pay.domain.PayRefundOrder;
+import com.boot.pay.refund.dto.AuditRefundDTO;
 import com.boot.pay.refund.dto.RefundCreateDTO;
 import com.boot.pay.refund.vo.RefundVO;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -34,5 +35,46 @@ public interface PayRefundOrderService extends IService<PayRefundOrder> {
      * @return 退款结果
      */
     RefundVO refundTx(RefundCreateDTO dto, Long merchantId);
+
+    /**
+     * 退款审核（平台内部，管理员操作）
+     * <p>
+     * 仅大额退款（超过 10000 元）进入待审核；通过则执行退款动账并触发回调通知，
+     * 驳回则退款单置失败、订单回到 SUCCESS（可重新申请退款）。
+     *
+     * @param dto        审核请求参数
+     * @param auditorId  审核人 ID（JWT 登录用户）
+     * @return 审核后的退款单信息
+     */
+    RefundVO audit(AuditRefundDTO dto, Long auditorId);
+
+    /**
+     * 退款动账（独立事务）：小额自动通过与大额审核通过共用
+     * <p>
+     * 订单状态条件更新 + 商户扣款 + 用户加款 + 双流水 + 退款单成功 + 订单终态。
+     *
+     * @param refundOrder 已创建的退款单（须已通过校验）
+     * @return 退款结果
+     */
+    RefundVO executeRefundTx(PayRefundOrder refundOrder);
+
+    /**
+     * 退款审核通过（独立事务，仅供 {@link #audit} 在锁内调用）
+     *
+     * @param refundOrderId 退款单 ID
+     * @param auditorId     审核人 ID
+     * @return 退款结果
+     */
+    RefundVO auditPassTx(Long refundOrderId, Long auditorId);
+
+    /**
+     * 退款审核驳回（独立事务，仅供 {@link #audit} 在锁内调用）
+     *
+     * @param refundOrderId 退款单 ID
+     * @param auditorId     审核人 ID
+     * @param reason        驳回原因（写入 fail_reason）
+     * @return 驳回后的退款单信息
+     */
+    RefundVO auditRejectTx(Long refundOrderId, Long auditorId, String reason);
 
 }
