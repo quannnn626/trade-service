@@ -27,6 +27,21 @@ public interface PayMerchantAccountMapper extends BaseMapper<PayMerchantAccount>
     int addBalance(@Param("merchantId") Long merchantId,
                    @Param("oldVersion") Integer oldVersion,
                    @Param("amount") BigDecimal amount);
+
+    /**
+     * 乐观锁扣减余额（退款扣款，按退款净额出账）
+     * <p>
+     * version 条件保证并发安全，balance >= amount 二次兜底防止余额变负。
+     * 同时累计 total_expense。
+     *
+     * @param merchantId 商户 ID
+     * @param oldVersion 读取时的版本号
+     * @param amount     扣减金额（退款金额 - 退还手续费）
+     * @return 受影响行数，0 表示余额不足或版本冲突
+     */
+    int deductBalance(@Param("merchantId") Long merchantId,
+                      @Param("oldVersion") Integer oldVersion,
+                      @Param("amount") BigDecimal amount);
 }
 
 

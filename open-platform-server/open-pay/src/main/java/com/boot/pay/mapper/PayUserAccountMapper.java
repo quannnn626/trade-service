@@ -28,6 +28,20 @@ public interface PayUserAccountMapper extends BaseMapper<PayUserAccount> {
     int deductBalance(@Param("userId") Long userId,
                       @Param("oldVersion") Integer oldVersion,
                       @Param("amount") BigDecimal amount);
+
+    /**
+     * 乐观锁增加余额（退款入账）
+     * <p>
+     * 同时累计 total_income。
+     *
+     * @param userId     用户 ID
+     * @param oldVersion 读取时的版本号
+     * @param amount     入账金额（退款金额）
+     * @return 受影响行数，0 表示版本冲突
+     */
+    int addBalance(@Param("userId") Long userId,
+                   @Param("oldVersion") Integer oldVersion,
+                   @Param("amount") BigDecimal amount);
 }
 
 

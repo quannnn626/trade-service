@@ -38,4 +38,14 @@
         apply_time,audit_status,auditor_id,audit_time,
         fail_reason,notify_url
     </sql>
+
+    <select id="sumRefundedAmount" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(actual_amount), 0)
+        FROM pay_refund_order
+        WHERE payment_no = #{paymentNo}
+          AND status IN
+        <foreach collection="statuses" item="s" open="(" separator="," close=")">
+            #{s}
+        </foreach>
+    </select>
 </mapper>

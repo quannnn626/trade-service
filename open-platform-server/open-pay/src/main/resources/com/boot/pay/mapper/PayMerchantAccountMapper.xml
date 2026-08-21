@@ -32,4 +32,14 @@
         WHERE merchant_id = #{merchantId}
           AND version = #{oldVersion}
     </update>
+
+    <update id="deductBalance">
+        UPDATE pay_merchant_account
+        SET balance       = balance - #{amount},
+            version       = version + 1,
+            total_expense = total_expense + #{amount}
+        WHERE merchant_id = #{merchantId}
+          AND version = #{oldVersion}
+          AND balance >= #{amount}
+    </update>
 </mapper>

@@ -12,11 +12,14 @@ import com.boot.common.utils.SignUtil;
 import com.boot.pay.domain.PayMerchant;
 import com.boot.pay.domain.PayPaymentNotify;
 import com.boot.pay.domain.PayPaymentOrder;
+import com.boot.pay.domain.PayRefundOrder;
 import com.boot.pay.mapper.PayMerchantMapper;
 import com.boot.pay.mapper.PayPaymentNotifyMapper;
 import com.boot.pay.mapper.PayPaymentOrderMapper;
+import com.boot.pay.mapper.PayRefundOrderMapper;
 import com.boot.pay.notify.enums.NotifyStatusEnum;
 import com.boot.pay.notify.enums.NotifyTypeEnum;
+import com.boot.pay.refund.enums.RefundStatusEnum;
 import com.boot.pay.service.PayPaymentNotifyService;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +58,9 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
     @Resource
     private PayMerchantMapper payMerchantMapper;
 
+    @Resource
+    private PayRefundOrderMapper payRefundOrderMapper;
+
     @Override
     public void triggerNotify(String paymentNo) {
         PayPaymentOrder order = payPaymentOrderMapper.selectOne(
@@ -87,6 +93,40 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
     }
 
     @Override
+    public void triggerRefundNotify(String refundNo) {
+        PayRefundOrder refund = payRefundOrderMapper.selectOne(
+                new LambdaQueryWrapper<PayRefundOrder>()
+                        .eq(PayRefundOrder::getRefundNo, refundNo));
+        if (refund == null) {
+            log.warn("退款回调触发失败：退款单不存在 refundNo={}", refundNo);
+            return;
+        }
+        PayPaymentOrder order = payPaymentOrderMapper.selectOne(
+                new LambdaQueryWrapper<PayPaymentOrder>()
+                        .eq(PayPaymentOrder::getPaymentNo, refund.getPaymentNo()));
+        if (order == null || StrUtil.isBlank(order.getNotifyUrl())) {
+            log.warn("退款回调触发失败：订单或回调地址不存在 refundNo={} paymentNo={}",
+                    refundNo, refund.getPaymentNo());
+            return;
+        }
+
+        // 创建退款通知记录，立即执行（退款回调复用支付回调的回调地址与重试机制）
+        PayPaymentNotify record = new PayPaymentNotify();
+        record.setPaymentNo(order.getPaymentNo());
+        record.setMerchantId(order.getMerchantId());
+        record.setNotifyUrl(order.getNotifyUrl());
+        record.setNotifyType(NotifyTypeEnum.REFUND_SUCCESS.getCode());
+        record.setNotifyStatus(NotifyStatusEnum.WAIT.getCode());
+        record.setRetryCount(0);
+        record.setMaxRetry(10);
+        record.setNextRetryTime(new Date());
+        save(record);
+
+        log.info("创建退款回调通知记录并立即发送 refundNo={} notifyUrl={}", refundNo, order.getNotifyUrl());
+        sendRefundNotify(record);
+    }
+
+    @Override
     public void retryNotify() {
         // 扫描到期的待通知记录，最早到期优先
         List<PayPaymentNotify> waitList = baseMapper.selectList(
@@ -101,7 +141,12 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
         log.info("回调重试任务扫描到 {} 条待重试通知", waitList.size());
         for (PayPaymentNotify record : waitList) {
             try {
-                sendNotify(record);
+                // 按通知类型分派：支付回调与退款回调参数不同，必须走各自的组装逻辑
+                if (NotifyTypeEnum.PAY_SUCCESS.getCode().equals(record.getNotifyType())) {
+                    sendNotify(record);
+                } else {
+                    sendRefundNotify(record);
+                }
             } catch (Exception e) {
                 log.error("回调重试发送异常 paymentNo={} 原因: {}",
                         record.getPaymentNo(), e.getMessage(), e);
@@ -180,6 +225,91 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
 
         log.warn("回调通知失败 paymentNo={} httpStatus={} response={}",
                 record.getPaymentNo(), httpStatus, responseBody);
+        markFailed(record, "HTTP " + httpStatus + " 响应: " + StrUtil.maxLength(responseBody, 500));
+    }
+
+    /**
+     * 发送一次退款回调通知，并按结果更新通知记录
+     * <p>
+     * 通知记录按 paymentNo 关联退款单（表结构无 refund_no 列），取最近成功的一笔作为通知内容。
+     *
+     * @param record 通知记录（内部更新后落库）
+     */
+    private void sendRefundNotify(PayPaymentNotify record) {
+        PayRefundOrder refund = payRefundOrderMapper.selectOne(
+                new LambdaQueryWrapper<PayRefundOrder>()
+                        .eq(PayRefundOrder::getPaymentNo, record.getPaymentNo())
+                        .eq(PayRefundOrder::getStatus, RefundStatusEnum.SUCCESS.getCode())
+                        .orderByDesc(PayRefundOrder::getCreateTime)
+                        .last("LIMIT 1"));
+        if (refund == null) {
+            log.warn("退款回调发送失败：无成功退款单 paymentNo={}", record.getPaymentNo());
+            markFailed(record, "无成功退款单");
+            return;
+        }
+        PayPaymentOrder order = payPaymentOrderMapper.selectOne(
+                new LambdaQueryWrapper<PayPaymentOrder>()
+                        .eq(PayPaymentOrder::getPaymentNo, record.getPaymentNo()));
+        if (order == null) {
+            markFailed(record, "订单不存在");
+            return;
+        }
+        PayMerchant merchant = payMerchantMapper.selectById(record.getMerchantId());
+        if (merchant == null || StrUtil.isBlank(merchant.getAppSecret())) {
+            log.warn("退款回调发送失败：商户或签名密钥不存在 merchantId={}", record.getMerchantId());
+            markFailed(record, "商户 appSecret 不存在");
+            return;
+        }
+        if (StrUtil.isBlank(record.getNotifyUrl())) {
+            markFailed(record, "未配置回调地址");
+            return;
+        }
+
+        // 组装退款回调参数并签名（HMAC-SHA256，复用 SignUtil）
+        Map<String, Object> params = new HashMap<>();
+        params.put("notifyType", "REFUND_SUCCESS");
+        params.put("refundNo", refund.getRefundNo());
+        params.put("paymentNo", order.getPaymentNo());
+        params.put("orderNo", order.getOrderNo());
+        params.put("tradeStatus", "SUCCESS");
+        params.put("refundAmount", refund.getActualAmount());
+        if (StrUtil.isNotBlank(order.getAttach())) {
+            params.put("attach", order.getAttach());
+        }
+        params.put("sign", SignUtil.generateSign(params, merchant.getAppSecret()));
+        String requestBody = JSON.toJSONString(params);
+
+        // 发送（JSON，10 秒超时）
+        String responseBody = null;
+        int httpStatus = -1;
+        try {
+            HttpResponse response = HttpRequest.post(record.getNotifyUrl())
+                    .header("Content-Type", "application/json")
+                    .body(requestBody)
+                    .timeout(NOTIFY_TIMEOUT_MS)
+                    .execute();
+            httpStatus = response.getStatus();
+            responseBody = response.body();
+        } catch (Exception e) {
+            log.warn("退款回调 HTTP 发送异常 refundNo={} notifyUrl={} 原因: {}",
+                    refund.getRefundNo(), record.getNotifyUrl(), e.getMessage());
+            responseBody = e.getMessage();
+        }
+        record.setRequestData(requestBody);
+        record.setResponseData(responseBody);
+
+        // 判定成功：HTTP 200 且 body JSON code == 0（与平台 Result 成功码约定一致）
+        if (httpStatus == 200 && isSuccessCode(responseBody)) {
+            record.setNotifyStatus(NotifyStatusEnum.SUCCESS.getCode());
+            record.setNextRetryTime(null);
+            updateById(record);
+            log.info("退款回调通知成功 refundNo={} notifyUrl={}",
+                    refund.getRefundNo(), record.getNotifyUrl());
+            return;
+        }
+
+        log.warn("退款回调通知失败 refundNo={} httpStatus={} response={}",
+                refund.getRefundNo(), httpStatus, responseBody);
         markFailed(record, "HTTP " + httpStatus + " 响应: " + StrUtil.maxLength(responseBody, 500));
     }
 

@@ -19,6 +19,14 @@ public interface PayPaymentNotifyService extends IService<PayPaymentNotify> {
     void triggerNotify(String paymentNo);
 
     /**
+     * 触发退款回调通知：创建退款成功通知记录并立即发送第一次通知。
+     * 须在退款事务提交、分布式锁释放后调用；通知失败不影响退款结果，由重试任务兜底。
+     *
+     * @param refundNo 退款单号
+     */
+    void triggerRefundNotify(String refundNo);
+
+    /**
      * 重试待通知的回调：扫描到期的通知记录并重新发送（定时任务调用）
      */
     void retryNotify();
