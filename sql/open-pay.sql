@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 19/08/2026 12:37:57
+ Date: 21/08/2026 12:41:33
 */
 
 SET NAMES utf8mb4;
@@ -342,8 +342,21 @@ CREATE TABLE `pay_refund_order`  (
   `finish_time` datetime NULL DEFAULT NULL COMMENT '完成时间',
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `merchant_refund_no` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '商户退款单号（幂等用）',
+  `refund_type` int NULL DEFAULT 1 COMMENT '退款类型 1-全额 2-部分',
+  `apply_amount` decimal(12, 2) NULL DEFAULT NULL COMMENT '申请退款金额',
+  `actual_amount` decimal(12, 2) NULL DEFAULT NULL COMMENT '实际退款金额',
+  `fee_refund` decimal(12, 2) NULL DEFAULT 0.00 COMMENT '退还手续费',
+  `refund_channel` int NULL DEFAULT 1 COMMENT '退款渠道 1-原路退回',
+  `apply_time` datetime NULL DEFAULT NULL COMMENT '申请时间',
+  `audit_status` int NULL DEFAULT 0 COMMENT '审核状态 0-待审核 1-通过 2-驳回',
+  `auditor_id` bigint NULL DEFAULT NULL COMMENT '审核人ID',
+  `audit_time` datetime NULL DEFAULT NULL COMMENT '审核时间',
+  `fail_reason` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '退款失败原因',
+  `notify_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '退款回调地址',
   PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE INDEX `uk_refund_no`(`refund_no` ASC) USING BTREE
+  UNIQUE INDEX `uk_refund_no`(`refund_no` ASC) USING BTREE,
+  UNIQUE INDEX `uk_merchant_refund`(`merchant_id` ASC, `merchant_refund_no` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '退款订单表' ROW_FORMAT = DYNAMIC;
 
 -- ----------------------------

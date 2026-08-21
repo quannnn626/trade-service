@@ -1,7 +1,6 @@
 package com.boot.pay.domain;
 
 import com.baomidou.mybatisplus.annotation.IdType;
-import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;
@@ -62,76 +61,73 @@ public class PayRefundOrder {
     private Date finishTime;
 
     /**
-     * 
+     *
      */
     private Date createTime;
 
     /**
-     * 
+     *
      */
     private Date updateTime;
 
-    @Override
-    public boolean equals(Object that) {
-        if (this == that) {
-            return true;
-        }
-        if (that == null) {
-            return false;
-        }
-        if (getClass() != that.getClass()) {
-            return false;
-        }
-        PayRefundOrder other = (PayRefundOrder) that;
-        return (this.getId() == null ? other.getId() == null : this.getId().equals(other.getId()))
-            && (this.getRefundNo() == null ? other.getRefundNo() == null : this.getRefundNo().equals(other.getRefundNo()))
-            && (this.getPaymentNo() == null ? other.getPaymentNo() == null : this.getPaymentNo().equals(other.getPaymentNo()))
-            && (this.getMerchantId() == null ? other.getMerchantId() == null : this.getMerchantId().equals(other.getMerchantId()))
-            && (this.getUserId() == null ? other.getUserId() == null : this.getUserId().equals(other.getUserId()))
-            && (this.getRefundAmount() == null ? other.getRefundAmount() == null : this.getRefundAmount().equals(other.getRefundAmount()))
-            && (this.getRefundReason() == null ? other.getRefundReason() == null : this.getRefundReason().equals(other.getRefundReason()))
-            && (this.getStatus() == null ? other.getStatus() == null : this.getStatus().equals(other.getStatus()))
-            && (this.getFinishTime() == null ? other.getFinishTime() == null : this.getFinishTime().equals(other.getFinishTime()))
-            && (this.getCreateTime() == null ? other.getCreateTime() == null : this.getCreateTime().equals(other.getCreateTime()))
-            && (this.getUpdateTime() == null ? other.getUpdateTime() == null : this.getUpdateTime().equals(other.getUpdateTime()));
-    }
+    /**
+     * 商户退款单号（幂等用）
+     */
+    private String merchantRefundNo;
 
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + ((getId() == null) ? 0 : getId().hashCode());
-        result = prime * result + ((getRefundNo() == null) ? 0 : getRefundNo().hashCode());
-        result = prime * result + ((getPaymentNo() == null) ? 0 : getPaymentNo().hashCode());
-        result = prime * result + ((getMerchantId() == null) ? 0 : getMerchantId().hashCode());
-        result = prime * result + ((getUserId() == null) ? 0 : getUserId().hashCode());
-        result = prime * result + ((getRefundAmount() == null) ? 0 : getRefundAmount().hashCode());
-        result = prime * result + ((getRefundReason() == null) ? 0 : getRefundReason().hashCode());
-        result = prime * result + ((getStatus() == null) ? 0 : getStatus().hashCode());
-        result = prime * result + ((getFinishTime() == null) ? 0 : getFinishTime().hashCode());
-        result = prime * result + ((getCreateTime() == null) ? 0 : getCreateTime().hashCode());
-        result = prime * result + ((getUpdateTime() == null) ? 0 : getUpdateTime().hashCode());
-        return result;
-    }
+    /**
+     * 退款类型 1-全额 2-部分
+     */
+    private Integer refundType;
 
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append(getClass().getSimpleName());
-        sb.append(" [");
-        sb.append("Hash = ").append(hashCode());
-        sb.append(", id=").append(id);
-        sb.append(", refundNo=").append(refundNo);
-        sb.append(", paymentNo=").append(paymentNo);
-        sb.append(", merchantId=").append(merchantId);
-        sb.append(", userId=").append(userId);
-        sb.append(", refundAmount=").append(refundAmount);
-        sb.append(", refundReason=").append(refundReason);
-        sb.append(", status=").append(status);
-        sb.append(", finishTime=").append(finishTime);
-        sb.append(", createTime=").append(createTime);
-        sb.append(", updateTime=").append(updateTime);
-        sb.append("]");
-        return sb.toString();
-    }
+    /**
+     * 申请退款金额
+     */
+    private BigDecimal applyAmount;
+
+    /**
+     * 实际退款金额
+     */
+    private BigDecimal actualAmount;
+
+    /**
+     * 退还手续费
+     */
+    private BigDecimal feeRefund;
+
+    /**
+     * 退款渠道 1-原路退回
+     */
+    private Integer refundChannel;
+
+    /**
+     * 申请时间
+     */
+    private Date applyTime;
+
+    /**
+     * 审核状态 0-待审核 1-通过 2-驳回
+     */
+    private Integer auditStatus;
+
+    /**
+     * 审核人ID
+     */
+    private Long auditorId;
+
+    /**
+     * 审核时间
+     */
+    private Date auditTime;
+
+    /**
+     * 退款失败原因
+     */
+    private String failReason;
+
+    /**
+     * 退款回调地址
+     */
+    private String notifyUrl;
+
 }

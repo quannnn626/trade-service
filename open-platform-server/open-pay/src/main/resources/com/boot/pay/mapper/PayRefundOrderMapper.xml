@@ -16,11 +16,26 @@
             <result property="finishTime" column="finish_time" />
             <result property="createTime" column="create_time" />
             <result property="updateTime" column="update_time" />
+            <result property="merchantRefundNo" column="merchant_refund_no" />
+            <result property="refundType" column="refund_type" />
+            <result property="applyAmount" column="apply_amount" />
+            <result property="actualAmount" column="actual_amount" />
+            <result property="feeRefund" column="fee_refund" />
+            <result property="refundChannel" column="refund_channel" />
+            <result property="applyTime" column="apply_time" />
+            <result property="auditStatus" column="audit_status" />
+            <result property="auditorId" column="auditor_id" />
+            <result property="auditTime" column="audit_time" />
+            <result property="failReason" column="fail_reason" />
+            <result property="notifyUrl" column="notify_url" />
     </resultMap>
 
     <sql id="Base_Column_List">
         id,refund_no,payment_no,merchant_id,user_id,
         refund_amount,refund_reason,status,finish_time,
-        create_time,update_time
+        create_time,update_time,merchant_refund_no,refund_type,
+        apply_amount,actual_amount,fee_refund,refund_channel,
+        apply_time,audit_status,auditor_id,audit_time,
+        fail_reason,notify_url
     </sql>
 </mapper>
