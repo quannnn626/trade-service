@@ -30,6 +30,7 @@ public class NonceValidator {
      */
     public boolean check(String appKey, String nonce) {
         String key = NONCE_PREFIX + appKey + ":" + nonce;
+        // 从redis中查找nonce是否存在，底层调用exists查找是否存在，比get更快
         return Boolean.FALSE.equals(stringRedisTemplate.hasKey(key));
     }
 
