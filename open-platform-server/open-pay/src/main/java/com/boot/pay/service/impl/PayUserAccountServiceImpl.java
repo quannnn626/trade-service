@@ -1,5 +1,7 @@
 package com.boot.pay.service.impl;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.digest.BCrypt;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -7,14 +9,17 @@ import com.boot.common.exception.BusinessException;
 import com.boot.pay.account.constants.AccountConstants;
 import com.boot.pay.account.dto.RealNameAuthDTO;
 import com.boot.pay.account.dto.SetPayPasswordDTO;
+import com.boot.pay.account.enums.AccountStatusEnum;
 import com.boot.pay.account.enums.RealNameAuthEnum;
 import com.boot.pay.account.vo.AccountVO;
 import com.boot.pay.domain.PayUserAccount;
 import com.boot.pay.mapper.PayUserAccountMapper;
 import com.boot.pay.service.PayUserAccountService;
 import java.math.BigDecimal;
+import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
 * @author quannnn
@@ -25,6 +30,27 @@ import org.springframework.stereotype.Service;
 @Service
 public class PayUserAccountServiceImpl extends ServiceImpl<PayUserAccountMapper, PayUserAccount>
     implements PayUserAccountService {
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void createAccountForUser(Long userId) {
+        String accountNo = "UA" + DateUtil.format(new Date(), "yyyyMMdd")
+                + String.valueOf(IdUtil.getSnowflake(1, 1).nextId()).substring(10);
+        PayUserAccount account = new PayUserAccount();
+        account.setUserId(userId);
+        account.setAccountNo(accountNo);
+        account.setBalance(BigDecimal.ZERO);
+        account.setFrozenAmount(BigDecimal.ZERO);
+        account.setStatus(AccountStatusEnum.NORMAL.getCode());
+        account.setVersion(0);
+        account.setTotalIncome(BigDecimal.ZERO);
+        account.setTotalExpense(BigDecimal.ZERO);
+        account.setRealNameAuth(RealNameAuthEnum.UNREAL.getCode());
+        account.setDailyLimit(AccountConstants.DAILY_LIMIT_UNREAL_NAME);
+        account.setDailyUsed(BigDecimal.ZERO);
+        this.save(account);
+        log.info("自动开户成功 userId={} accountNo={}", userId, accountNo);
+    }
 
     @Override
     public AccountVO getMyAccount(Long userId) {

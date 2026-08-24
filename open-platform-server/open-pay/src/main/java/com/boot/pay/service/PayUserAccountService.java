@@ -14,6 +14,13 @@ import com.baomidou.mybatisplus.extension.service.IService;
 public interface PayUserAccountService extends IService<PayUserAccount> {
 
     /**
+     * 为新注册用户自动创建钱包账户（注册流程调用，同一事务）
+     *
+     * @param userId 用户ID
+     */
+    void createAccountForUser(Long userId);
+
+    /**
      * 当前登录用户查询自己的账户
      *
      * @param userId 用户ID

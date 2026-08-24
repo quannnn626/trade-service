@@ -1,13 +1,9 @@
 package com.boot.pay.auth.service.impl;
 
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.digest.BCrypt;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.boot.common.exception.BusinessException;
-import com.boot.pay.account.constants.AccountConstants;
-import com.boot.pay.account.enums.AccountStatusEnum;
-import com.boot.pay.account.enums.RealNameAuthEnum;
 import com.boot.pay.auth.JwtTokenUtil;
 import com.boot.pay.auth.dto.LoginDTO;
 import com.boot.pay.auth.dto.RefreshDTO;
@@ -15,17 +11,14 @@ import com.boot.pay.auth.dto.RegisterDTO;
 import com.boot.pay.auth.service.AuthService;
 import com.boot.pay.auth.vo.LoginVO;
 import com.boot.pay.domain.AuthUser;
-import com.boot.pay.domain.PayUserAccount;
 import com.boot.pay.mapper.AuthUserMapper;
-import com.boot.pay.mapper.PayUserAccountMapper;
+import com.boot.pay.service.PayUserAccountService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -41,7 +34,7 @@ public class AuthServiceImpl implements AuthService {
     private final AuthUserMapper authUserMapper;
     private final JwtTokenUtil jwtTokenUtil;
     private final StringRedisTemplate stringRedisTemplate;
-    private final PayUserAccountMapper payUserAccountMapper;
+    private final PayUserAccountService payUserAccountService;
 
     @Override
     public LoginVO login(LoginDTO dto) {
@@ -86,24 +79,10 @@ public class AuthServiceImpl implements AuthService {
         authUserMapper.insert(user);
 
         // 自动创建钱包账户，与用户注册同一事务
-        String accountNo = "UA" + DateUtil.format(new Date(), "yyyyMMdd")
-                + String.valueOf(IdUtil.getSnowflake(1, 1).nextId()).substring(10);
-        PayUserAccount account = new PayUserAccount();
-        account.setUserId(user.getId());
-        account.setAccountNo(accountNo);
-        account.setBalance(BigDecimal.ZERO);
-        account.setFrozenAmount(BigDecimal.ZERO);
-        account.setStatus(AccountStatusEnum.NORMAL.getCode());
-        account.setVersion(0);
-        account.setTotalIncome(BigDecimal.ZERO);
-        account.setTotalExpense(BigDecimal.ZERO);
-        account.setRealNameAuth(RealNameAuthEnum.UNREAL.getCode());
-        account.setDailyLimit(AccountConstants.DAILY_LIMIT_UNREAL_NAME);
-        account.setDailyUsed(BigDecimal.ZERO);
-        payUserAccountMapper.insert(account);
+        payUserAccountService.createAccountForUser(user.getId());
 
-        log.info("用户注册成功并自动开户 userId={} userNo={} accountNo={}",
-                user.getId(), user.getUserNo(), accountNo);
+        log.info("用户注册成功并自动开户 userId={} userNo={}",
+                user.getId(), user.getUserNo());
     }
 
     @Override
