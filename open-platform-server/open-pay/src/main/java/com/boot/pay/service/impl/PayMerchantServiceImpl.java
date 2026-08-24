@@ -49,13 +49,16 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
 
     @Override
     public MerchantApplyVO apply(MerchantApplyDTO dto) {
+        // 系统生成：merchant_no
         String dateStr = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
         long snowflakeId = IdUtil.getSnowflake(1, 1).nextId();
         String merchantNo = "M" + dateStr + String.valueOf(snowflakeId).substring(10);
 
+        // 拼接merchant_no+当前时间戳并且用md5加密后截取前16位
         String rawKey = merchantNo + System.currentTimeMillis();
         String appKey = SecureUtil.md5(rawKey).substring(0, 16);
 
+        // 生成appSecret密钥用于计算每次请求携带的sign参数
         String appSecret = IdUtil.fastSimpleUUID();
 
         PayMerchant merchant = new PayMerchant();
@@ -89,6 +92,7 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
 
         log.info("商户入驻申请成功: merchantNo={}, merchantName={}", merchantNo, dto.getMerchantName());
 
+        // 返回密钥信息
         return MerchantApplyVO.builder()
                 .merchantNo(merchantNo)
                 .merchantName(dto.getMerchantName())
