@@ -10,12 +10,10 @@ import com.boot.common.exception.BusinessException;
 import com.boot.pay.account.constants.AccountConstants;
 import com.boot.pay.account.enums.AccountFlowTypeEnum;
 import com.boot.pay.account.enums.AccountStatusEnum;
-import com.boot.pay.domain.PayAccountFlow;
 import com.boot.pay.domain.PayMerchantAccount;
 import com.boot.pay.domain.PayPaymentOrder;
 import com.boot.pay.domain.PayRefundOrder;
 import com.boot.pay.domain.PayUserAccount;
-import com.boot.pay.mapper.PayAccountFlowMapper;
 import com.boot.pay.mapper.PayMerchantAccountMapper;
 import com.boot.pay.mapper.PayPaymentOrderMapper;
 import com.boot.pay.mapper.PayRefundOrderMapper;
@@ -29,6 +27,7 @@ import com.boot.pay.refund.enums.RefundAuditStatusEnum;
 import com.boot.pay.refund.enums.RefundStatusEnum;
 import com.boot.pay.refund.enums.RefundTypeEnum;
 import com.boot.pay.refund.vo.RefundVO;
+import com.boot.pay.service.PayAccountFlowService;
 import com.boot.pay.service.PayPaymentNotifyService;
 import com.boot.pay.service.PayRefundOrderService;
 import jakarta.annotation.Resource;
@@ -67,7 +66,7 @@ public class PayRefundOrderServiceImpl extends ServiceImpl<PayRefundOrderMapper,
     private PayMerchantAccountMapper payMerchantAccountMapper;
 
     @Resource
-    private PayAccountFlowMapper payAccountFlowMapper;
+    private PayAccountFlowService payAccountFlowService;
 
     @Resource
     private RedissonClient redissonClient;
@@ -326,10 +325,10 @@ public class PayRefundOrderServiceImpl extends ServiceImpl<PayRefundOrderMapper,
         PayMerchantAccount merchantAfter = payMerchantAccountMapper.selectById(merchantAccount.getId());
         PayUserAccount userAfter = payUserAccountMapper.selectById(userAccount.getId());
         String subject = StrUtil.blankToDefault(order.getSubject(), order.getOrderNo());
-        insertFlow(AccountConstants.ACCOUNT_TYPE_MERCHANT, merchantAccount.getId(), order.getPaymentNo(),
+        payAccountFlowService.recordFlow(AccountConstants.ACCOUNT_TYPE_MERCHANT, merchantAccount.getId(), order.getPaymentNo(),
                 AccountFlowTypeEnum.REFUND_EXPENSE.getCode(), merchantDeduct.negate(),
                 merchantAccount.getBalance(), merchantAfter.getBalance(), "退款支出-" + subject);
-        insertFlow(AccountConstants.ACCOUNT_TYPE_USER, userAccount.getId(), order.getPaymentNo(),
+        payAccountFlowService.recordFlow(AccountConstants.ACCOUNT_TYPE_USER, userAccount.getId(), order.getPaymentNo(),
                 AccountFlowTypeEnum.REFUND_INCOME.getCode(), refundAmount,
                 userAccount.getBalance(), userAfter.getBalance(), "退款收入-" + subject);
 
@@ -509,25 +508,6 @@ public class PayRefundOrderServiceImpl extends ServiceImpl<PayRefundOrderMapper,
      */
     private List<Integer> occupiedStatuses() {
         return List.of(RefundStatusEnum.PROCESSING.getCode(), RefundStatusEnum.SUCCESS.getCode());
-    }
-
-    /**
-     * 写入一条资金流水
-     */
-    private void insertFlow(int accountType, Long accountId, String paymentNo, int flowType,
-                            BigDecimal amount, BigDecimal beforeBalance, BigDecimal afterBalance, String remark) {
-        PayAccountFlow flow = new PayAccountFlow();
-        flow.setFlowNo("FLW" + DateUtil.format(new Date(), "yyyyMMdd")
-                + String.valueOf(IdUtil.getSnowflake(1, 1).nextId()).substring(10));
-        flow.setAccountType(accountType);
-        flow.setAccountId(accountId);
-        flow.setPaymentNo(paymentNo);
-        flow.setFlowType(flowType);
-        flow.setAmount(amount);
-        flow.setBeforeBalance(beforeBalance);
-        flow.setAfterBalance(afterBalance);
-        flow.setRemark(remark);
-        payAccountFlowMapper.insert(flow);
     }
 
     private BigDecimal nvl(BigDecimal value) {

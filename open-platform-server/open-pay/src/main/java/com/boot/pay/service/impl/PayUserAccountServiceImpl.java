@@ -13,10 +13,9 @@ import com.boot.pay.account.enums.AccountFlowTypeEnum;
 import com.boot.pay.account.enums.AccountStatusEnum;
 import com.boot.pay.account.enums.RealNameAuthEnum;
 import com.boot.pay.account.vo.AccountVO;
-import com.boot.pay.domain.PayAccountFlow;
 import com.boot.pay.domain.PayUserAccount;
-import com.boot.pay.mapper.PayAccountFlowMapper;
 import com.boot.pay.mapper.PayUserAccountMapper;
+import com.boot.pay.service.PayAccountFlowService;
 import com.boot.pay.service.PayUserAccountService;
 import java.math.BigDecimal;
 import java.util.Date;
@@ -36,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class PayUserAccountServiceImpl extends ServiceImpl<PayUserAccountMapper, PayUserAccount>
     implements PayUserAccountService {
 
-    private final PayAccountFlowMapper payAccountFlowMapper;
+    private final PayAccountFlowService payAccountFlowService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -146,8 +145,9 @@ public class PayUserAccountServiceImpl extends ServiceImpl<PayUserAccountMapper,
             throw new BusinessException("账户变动频繁，请重试");
         }
 
-        insertFlow(account, AccountFlowTypeEnum.FREEZE.getCode(), freezeAmount.negate(),
-                "资金冻结");
+        payAccountFlowService.recordFlow(AccountConstants.ACCOUNT_TYPE_USER, account.getId(), null,
+                AccountFlowTypeEnum.FREEZE.getCode(), freezeAmount.negate(),
+                account.getBalance(), account.getBalance(), "资金冻结");
         log.info("账户资金冻结成功 userId={} accountNo={} amount={}",
                 userId, account.getAccountNo(), freezeAmount);
         return freezeAmount;
@@ -170,8 +170,9 @@ public class PayUserAccountServiceImpl extends ServiceImpl<PayUserAccountMapper,
             throw new BusinessException("账户变动频繁，请重试");
         }
 
-        insertFlow(account, AccountFlowTypeEnum.UNFREEZE.getCode(), amount,
-                "资金解冻");
+        payAccountFlowService.recordFlow(AccountConstants.ACCOUNT_TYPE_USER, account.getId(), null,
+                AccountFlowTypeEnum.UNFREEZE.getCode(), amount,
+                account.getBalance(), account.getBalance(), "资金解冻");
         log.info("账户资金解冻成功 userId={} accountNo={} amount={}",
                 userId, account.getAccountNo(), amount);
         return amount;
@@ -184,23 +185,6 @@ public class PayUserAccountServiceImpl extends ServiceImpl<PayUserAccountMapper,
         if (!AccountStatusEnum.NORMAL.getCode().equals(account.getStatus())) {
             throw new BusinessException("账户已被冻结");
         }
-    }
-
-    /**
-     * 写入一条冻结/解冻流水（冻结/解冻不改变 balance，before/after 记录变更前余额）
-     */
-    private void insertFlow(PayUserAccount account, int flowType, BigDecimal amount, String remark) {
-        PayAccountFlow flow = new PayAccountFlow();
-        flow.setFlowNo("FLW" + DateUtil.format(new Date(), "yyyyMMdd")
-                + String.valueOf(IdUtil.getSnowflake(1, 1).nextId()).substring(10));
-        flow.setAccountType(AccountConstants.ACCOUNT_TYPE_USER);
-        flow.setAccountId(account.getId());
-        flow.setFlowType(flowType);
-        flow.setAmount(amount);
-        flow.setBeforeBalance(account.getBalance());
-        flow.setAfterBalance(account.getBalance());
-        flow.setRemark(remark);
-        payAccountFlowMapper.insert(flow);
     }
 
     private BigDecimal nvl(BigDecimal value) {

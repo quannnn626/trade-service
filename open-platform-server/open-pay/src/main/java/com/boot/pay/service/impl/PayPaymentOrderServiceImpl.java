@@ -10,13 +10,11 @@ import com.boot.common.exception.BusinessException;
 import com.boot.pay.account.constants.AccountConstants;
 import com.boot.pay.account.enums.AccountFlowTypeEnum;
 import com.boot.pay.account.enums.AccountStatusEnum;
-import com.boot.pay.domain.PayAccountFlow;
 import com.boot.pay.domain.PayMerchant;
 import com.boot.pay.domain.PayMerchantAccount;
 import com.boot.pay.domain.PayPaymentChannel;
 import com.boot.pay.domain.PayPaymentOrder;
 import com.boot.pay.domain.PayUserAccount;
-import com.boot.pay.mapper.PayAccountFlowMapper;
 import com.boot.pay.mapper.PayMerchantAccountMapper;
 import com.boot.pay.mapper.PayMerchantMapper;
 import com.boot.pay.mapper.PayPaymentChannelMapper;
@@ -29,6 +27,7 @@ import com.boot.pay.payment.exception.PayOptimisticLockException;
 import com.boot.pay.payment.vo.CreatePayVO;
 import com.boot.pay.payment.vo.ExecutePayVO;
 import com.boot.pay.payment.vo.PayOrderVO;
+import com.boot.pay.service.PayAccountFlowService;
 import com.boot.pay.service.PayPaymentNotifyService;
 import com.boot.pay.service.PayPaymentOrderService;
 import jakarta.annotation.Resource;
@@ -67,7 +66,7 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
     private PayMerchantAccountMapper payMerchantAccountMapper;
 
     @Resource
-    private PayAccountFlowMapper payAccountFlowMapper;
+    private PayAccountFlowService payAccountFlowService;
 
     @Resource
     private RedissonClient redissonClient;
@@ -363,10 +362,10 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
         // ⑨ 写入资金流水 ×2（用户支出 + 商户收入），记录变更前后余额
         PayUserAccount userAfter = payUserAccountMapper.selectById(userAccount.getId());
         PayMerchantAccount merchantAfter = payMerchantAccountMapper.selectById(merchantAccount.getId());
-        insertFlow(AccountConstants.ACCOUNT_TYPE_USER, userAccount.getId(), order.getPaymentNo(),
+        payAccountFlowService.recordFlow(AccountConstants.ACCOUNT_TYPE_USER, userAccount.getId(), order.getPaymentNo(),
                 AccountFlowTypeEnum.EXPENSE.getCode(), order.getAmount().negate(),
                 userAccount.getBalance(), userAfter.getBalance(), "支付消费-" + order.getSubject());
-        insertFlow(AccountConstants.ACCOUNT_TYPE_MERCHANT, merchantAccount.getId(), order.getPaymentNo(),
+        payAccountFlowService.recordFlow(AccountConstants.ACCOUNT_TYPE_MERCHANT, merchantAccount.getId(), order.getPaymentNo(),
                 AccountFlowTypeEnum.INCOME.getCode(), order.getSettleAmount(),
                 merchantAccount.getBalance(), merchantAfter.getBalance(), "收款-" + order.getSubject());
 
@@ -387,25 +386,6 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
                 .statusDesc(PayStatusEnum.SUCCESS.getDesc())
                 .payTime(now)
                 .build();
-    }
-
-    /**
-     * 写入一条资金流水
-     */
-    private void insertFlow(int accountType, Long accountId, String paymentNo, int flowType,
-                            BigDecimal amount, BigDecimal beforeBalance, BigDecimal afterBalance, String remark) {
-        PayAccountFlow flow = new PayAccountFlow();
-        flow.setFlowNo("FLW" + DateUtil.format(new Date(), "yyyyMMdd")
-                + String.valueOf(IdUtil.getSnowflake(1, 1).nextId()).substring(10));
-        flow.setAccountType(accountType);
-        flow.setAccountId(accountId);
-        flow.setPaymentNo(paymentNo);
-        flow.setFlowType(flowType);
-        flow.setAmount(amount);
-        flow.setBeforeBalance(beforeBalance);
-        flow.setAfterBalance(afterBalance);
-        flow.setRemark(remark);
-        payAccountFlowMapper.insert(flow);
     }
 
     private BigDecimal nvl(BigDecimal value) {

@@ -1,5 +1,7 @@
 package com.boot.pay.service.impl;
 
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -20,6 +22,7 @@ import com.boot.pay.service.PayAccountFlowService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -39,6 +42,23 @@ public class PayAccountFlowServiceImpl extends ServiceImpl<PayAccountFlowMapper,
 
     private final PayUserAccountMapper payUserAccountMapper;
     private final PayMerchantAccountMapper payMerchantAccountMapper;
+
+    @Override
+    public void recordFlow(int accountType, Long accountId, String paymentNo, int flowType,
+                           BigDecimal amount, BigDecimal beforeBalance, BigDecimal afterBalance, String remark) {
+        PayAccountFlow flow = new PayAccountFlow();
+        flow.setFlowNo("FLW" + DateUtil.format(new Date(), "yyyyMMdd")
+                + String.valueOf(IdUtil.getSnowflake(1, 1).nextId()).substring(10));
+        flow.setAccountType(accountType);
+        flow.setAccountId(accountId);
+        flow.setPaymentNo(paymentNo);
+        flow.setFlowType(flowType);
+        flow.setAmount(amount);
+        flow.setBeforeBalance(beforeBalance);
+        flow.setAfterBalance(afterBalance);
+        flow.setRemark(remark);
+        baseMapper.insert(flow);
+    }
 
     @Override
     public IPage<FlowVO> listPage(Integer page, Integer pageSize, Integer accountType, Integer flowType,

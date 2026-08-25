@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.boot.pay.domain.PayAccountFlow;
 import com.boot.pay.flow.vo.DailySummaryVO;
 import com.boot.pay.flow.vo.FlowVO;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -60,4 +61,22 @@ public interface PayAccountFlowService extends IService<PayAccountFlow> {
      * @param date 汇总日期 yyyy-MM-dd（可空，默认当天）
      */
     DailySummaryVO dailySummary(LocalDate date);
+
+    /**
+     * 记录一条资金流水（支付/退款/冻结/解冻等资金变动统一入口）
+     * <p>
+     * 不开启独立事务，由调用方的事务统一管理（保证动账与流水同生共死）。
+     * 流水号 FLW+日期+雪花，before/after 记录该笔变动前后余额。
+     *
+     * @param accountType   账户类型 1-用户 2-商户
+     * @param accountId     账户 ID
+     * @param paymentNo     关联支付单号（无关联传 null）
+     * @param flowType      流水类型（AccountFlowTypeEnum）
+     * @param amount        变动金额（支出/冻结为负，收入/解冻为正）
+     * @param beforeBalance 变动前余额
+     * @param afterBalance  变动后余额
+     * @param remark        备注
+     */
+    void recordFlow(int accountType, Long accountId, String paymentNo, int flowType,
+                    BigDecimal amount, BigDecimal beforeBalance, BigDecimal afterBalance, String remark);
 }
