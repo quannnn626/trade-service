@@ -1,12 +1,15 @@
 package com.boot.pay.account.controller;
 
 import com.boot.common.result.Result;
+import com.boot.pay.account.dto.FreezeAccountDTO;
 import com.boot.pay.account.dto.RealNameAuthDTO;
 import com.boot.pay.account.dto.SetPayPasswordDTO;
+import com.boot.pay.account.dto.UnfreezeAccountDTO;
 import com.boot.pay.account.vo.AccountVO;
 import com.boot.pay.service.PayUserAccountService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -64,5 +67,26 @@ public class AccountController {
         Long userId = (Long) request.getAttribute("userId");
         payUserAccountService.realNameAuth(userId, dto);
         return Result.success();
+    }
+
+    /**
+     * 冻结账户资金（amount 为空则冻结全部可用余额）
+     */
+    @PostMapping("/freeze")
+    public Result<BigDecimal> freeze(@RequestBody(required = false) FreezeAccountDTO dto,
+                                     HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        BigDecimal amount = dto == null ? null : dto.getAmount();
+        return Result.success(payUserAccountService.freeze(userId, amount));
+    }
+
+    /**
+     * 解冻账户资金（amount 必填，且不能超过已冻结金额）
+     */
+    @PostMapping("/unfreeze")
+    public Result<BigDecimal> unfreeze(@Valid @RequestBody UnfreezeAccountDTO dto,
+                                       HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        return Result.success(payUserAccountService.unfreeze(userId, dto.getAmount()));
     }
 }

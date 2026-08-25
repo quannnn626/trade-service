@@ -9,14 +9,18 @@ import com.boot.common.exception.BusinessException;
 import com.boot.pay.account.constants.AccountConstants;
 import com.boot.pay.account.dto.RealNameAuthDTO;
 import com.boot.pay.account.dto.SetPayPasswordDTO;
+import com.boot.pay.account.enums.AccountFlowTypeEnum;
 import com.boot.pay.account.enums.AccountStatusEnum;
 import com.boot.pay.account.enums.RealNameAuthEnum;
 import com.boot.pay.account.vo.AccountVO;
+import com.boot.pay.domain.PayAccountFlow;
 import com.boot.pay.domain.PayUserAccount;
+import com.boot.pay.mapper.PayAccountFlowMapper;
 import com.boot.pay.mapper.PayUserAccountMapper;
 import com.boot.pay.service.PayUserAccountService;
 import java.math.BigDecimal;
 import java.util.Date;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,8 +32,11 @@ import org.springframework.transaction.annotation.Transactional;
 */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class PayUserAccountServiceImpl extends ServiceImpl<PayUserAccountMapper, PayUserAccount>
     implements PayUserAccountService {
+
+    private final PayAccountFlowMapper payAccountFlowMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -118,6 +125,86 @@ public class PayUserAccountServiceImpl extends ServiceImpl<PayUserAccountMapper,
             throw new BusinessException("实名认证失败，请稍后重试");
         }
         log.info("实名认证成功 userId={} accountNo={} realName={}", userId, account.getAccountNo(), dto.getRealName());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public BigDecimal freeze(Long userId, BigDecimal amount) {
+        PayUserAccount account = getByUserId(userId);
+        checkNormal(account);
+
+        // 冻结金额：为空则冻结全部可用余额（可用余额 = balance - frozen_amount）
+        BigDecimal available = nvl(account.getBalance()).subtract(nvl(account.getFrozenAmount()));
+        BigDecimal freezeAmount = amount == null ? available : amount;
+        if (freezeAmount.compareTo(available) > 0) {
+            throw new BusinessException("冻结金额超出可用余额");
+        }
+
+        // 乐观锁更新冻结金额，0 行说明账户已被并发修改，本次冻结不生效
+        int rows = baseMapper.addFrozenAmount(userId, account.getVersion(), freezeAmount);
+        if (rows == 0) {
+            throw new BusinessException("账户变动频繁，请重试");
+        }
+
+        insertFlow(account, AccountFlowTypeEnum.FREEZE.getCode(), freezeAmount.negate(),
+                "资金冻结");
+        log.info("账户资金冻结成功 userId={} accountNo={} amount={}",
+                userId, account.getAccountNo(), freezeAmount);
+        return freezeAmount;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public BigDecimal unfreeze(Long userId, BigDecimal amount) {
+        PayUserAccount account = getByUserId(userId);
+        checkNormal(account);
+
+        // 解冻金额不能超过已冻结金额
+        if (amount.compareTo(nvl(account.getFrozenAmount())) > 0) {
+            throw new BusinessException("解冻金额超出已冻结金额");
+        }
+
+        // 乐观锁更新冻结金额，0 行说明账户已被并发修改，本次解冻不生效
+        int rows = baseMapper.subtractFrozenAmount(userId, account.getVersion(), amount);
+        if (rows == 0) {
+            throw new BusinessException("账户变动频繁，请重试");
+        }
+
+        insertFlow(account, AccountFlowTypeEnum.UNFREEZE.getCode(), amount,
+                "资金解冻");
+        log.info("账户资金解冻成功 userId={} accountNo={} amount={}",
+                userId, account.getAccountNo(), amount);
+        return amount;
+    }
+
+    /**
+     * 校验账户状态正常（冻结操作对非正常账户拒绝）
+     */
+    private void checkNormal(PayUserAccount account) {
+        if (!AccountStatusEnum.NORMAL.getCode().equals(account.getStatus())) {
+            throw new BusinessException("账户已被冻结");
+        }
+    }
+
+    /**
+     * 写入一条冻结/解冻流水（冻结/解冻不改变 balance，before/after 记录变更前余额）
+     */
+    private void insertFlow(PayUserAccount account, int flowType, BigDecimal amount, String remark) {
+        PayAccountFlow flow = new PayAccountFlow();
+        flow.setFlowNo("FLW" + DateUtil.format(new Date(), "yyyyMMdd")
+                + String.valueOf(IdUtil.getSnowflake(1, 1).nextId()).substring(10));
+        flow.setAccountType(AccountConstants.ACCOUNT_TYPE_USER);
+        flow.setAccountId(account.getId());
+        flow.setFlowType(flowType);
+        flow.setAmount(amount);
+        flow.setBeforeBalance(account.getBalance());
+        flow.setAfterBalance(account.getBalance());
+        flow.setRemark(remark);
+        payAccountFlowMapper.insert(flow);
+    }
+
+    private BigDecimal nvl(BigDecimal value) {
+        return value != null ? value : BigDecimal.ZERO;
     }
 
     private PayUserAccount getByUserId(Long userId) {

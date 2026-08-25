@@ -5,6 +5,7 @@ import com.boot.pay.account.dto.SetPayPasswordDTO;
 import com.boot.pay.account.vo.AccountVO;
 import com.boot.pay.domain.PayUserAccount;
 import com.baomidou.mybatisplus.extension.service.IService;
+import java.math.BigDecimal;
 
 /**
 * @author quannnn
@@ -51,4 +52,26 @@ public interface PayUserAccountService extends IService<PayUserAccount> {
      * @param dto    实名认证请求
      */
     void realNameAuth(Long userId, RealNameAuthDTO dto);
+
+    /**
+     * 冻结账户资金（amount 为空则冻结全部可用余额，冻结后该笔资金不可用于支付）
+     * <p>
+     * 乐观锁（version）保证并发安全，同一事务内写冻结流水（flow_type=7）。
+     *
+     * @param userId 用户ID
+     * @param amount 冻结金额（为空则冻结全部可用余额）
+     * @return 本次冻结金额
+     */
+    BigDecimal freeze(Long userId, BigDecimal amount);
+
+    /**
+     * 解冻账户资金（amount 必填，且不能超过已冻结金额）
+     * <p>
+     * 乐观锁（version）保证并发安全，同一事务内写解冻流水（flow_type=8）。
+     *
+     * @param userId 用户ID
+     * @param amount 解冻金额
+     * @return 本次解冻金额
+     */
+    BigDecimal unfreeze(Long userId, BigDecimal amount);
 }

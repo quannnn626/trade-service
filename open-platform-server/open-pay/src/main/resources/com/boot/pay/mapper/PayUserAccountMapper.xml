@@ -53,4 +53,20 @@
         WHERE user_id = #{userId}
           AND version = #{oldVersion}
     </update>
+
+    <update id="addFrozenAmount">
+        UPDATE pay_user_account
+        SET frozen_amount = frozen_amount + #{amount},
+            version       = version + 1
+        WHERE user_id = #{userId}
+          AND version = #{oldVersion}
+    </update>
+
+    <update id="subtractFrozenAmount">
+        UPDATE pay_user_account
+        SET frozen_amount = frozen_amount - #{amount},
+            version       = version + 1
+        WHERE user_id = #{userId}
+          AND version = #{oldVersion}
+    </update>
 </mapper>

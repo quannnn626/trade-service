@@ -42,6 +42,34 @@ public interface PayUserAccountMapper extends BaseMapper<PayUserAccount> {
     int addBalance(@Param("userId") Long userId,
                    @Param("oldVersion") Integer oldVersion,
                    @Param("amount") BigDecimal amount);
+
+    /**
+     * 乐观锁增加冻结金额（账户资金冻结）
+     * <p>
+     * version 条件保证并发安全，frozen_amount 只增不减，可用余额不变。
+     *
+     * @param userId     用户 ID
+     * @param oldVersion 读取时的版本号
+     * @param amount     冻结金额
+     * @return 受影响行数，0 表示版本冲突
+     */
+    int addFrozenAmount(@Param("userId") Long userId,
+                        @Param("oldVersion") Integer oldVersion,
+                        @Param("amount") BigDecimal amount);
+
+    /**
+     * 乐观锁减少冻结金额（账户资金解冻）
+     * <p>
+     * version 条件保证并发安全，冻结金额大于等于解冻金额的校验在 Service 层完成。
+     *
+     * @param userId     用户 ID
+     * @param oldVersion 读取时的版本号
+     * @param amount     解冻金额
+     * @return 受影响行数，0 表示版本冲突
+     */
+    int subtractFrozenAmount(@Param("userId") Long userId,
+                             @Param("oldVersion") Integer oldVersion,
+                             @Param("amount") BigDecimal amount);
 }
 
 
