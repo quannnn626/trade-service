@@ -11,7 +11,7 @@
  Target Server Version : 80019
  File Encoding         : 65001
 
- Date: 21/08/2026 12:41:33
+ Date: 26/08/2026 10:25:10
 */
 
 SET NAMES utf8mb4;
@@ -318,6 +318,11 @@ CREATE TABLE `pay_recharge_order`  (
   `finish_time` datetime NULL DEFAULT NULL COMMENT '完成时间',
   `create_time` datetime NULL DEFAULT CURRENT_TIMESTAMP,
   `update_time` datetime NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `recharge_way` int NULL DEFAULT 1 COMMENT '充值方式 1-银行卡（当前仅此一种）',
+  `bank_name` varchar(64) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '银行名称（银行卡充值时）',
+  `card_no_tail` varchar(4) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL COMMENT '银行卡尾号',
+  `arrival_amount` decimal(12, 2) NULL DEFAULT NULL COMMENT '实际到账金额（可能有手续费）',
+  `fee_amount` decimal(12, 2) NULL DEFAULT 0.00 COMMENT '充值手续费（模拟阶段=0）',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE INDEX `uk_recharge_no`(`recharge_no` ASC) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_0900_ai_ci COMMENT = '账户充值订单表' ROW_FORMAT = DYNAMIC;
