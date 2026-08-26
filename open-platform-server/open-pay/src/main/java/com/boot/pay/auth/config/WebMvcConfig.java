@@ -31,6 +31,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .excludePathPatterns(
                         "/auth/login", "/auth/register", "/auth/refresh", "/auth/logout",
                         "/api/merchant/apply",
+                        // 充值到账回调：模拟银行通知，无 JWT（接入真实银行时补银行侧验签）
+                        "/api/recharge/callback",
                         "/open/**",
                         "/error"
                 );

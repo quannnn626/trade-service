@@ -1,7 +1,9 @@
 package com.boot.pay.recharge.controller;
 
 import com.boot.common.result.Result;
+import com.boot.pay.recharge.dto.RechargeCallbackDTO;
 import com.boot.pay.recharge.dto.RechargeCreateDTO;
+import com.boot.pay.recharge.vo.RechargeCallbackVO;
 import com.boot.pay.recharge.vo.RechargeCreateVO;
 import com.boot.pay.service.PayRechargeOrderService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,5 +34,13 @@ public class RechargeController {
                                            HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         return Result.success(payRechargeOrderService.create(dto, userId));
+    }
+
+    /**
+     * 充值到账（模拟银行通知；无 JWT 鉴权，接入真实银行时补验签）
+     */
+    @PostMapping("/callback")
+    public Result<RechargeCallbackVO> callback(@Valid @RequestBody RechargeCallbackDTO dto) {
+        return Result.success(payRechargeOrderService.callback(dto));
     }
 }

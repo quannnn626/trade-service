@@ -21,4 +21,9 @@ public class MockBankChannel implements RechargeChannel {
     public String create(PayRechargeOrder order) {
         return RechargeConstants.MOCK_BANK_PAGE_PREFIX + order.getRechargeNo();
     }
+
+    @Override
+    public void handleArrival(PayRechargeOrder order) {
+        // 模拟银行无确认动作，真实银行接入时在此校验银行侧到账结果
+    }
 }

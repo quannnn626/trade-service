@@ -18,4 +18,9 @@ public interface RechargeChannel {
      * 发起充值，返回跳转/页面参数（模拟阶段返回模拟银行收银台地址）
      */
     String create(PayRechargeOrder order);
+
+    /**
+     * 到账确认处理（模拟阶段无实际确认动作，真实银行接入时在此校验银行侧到账结果）
+     */
+    void handleArrival(PayRechargeOrder order);
 }
