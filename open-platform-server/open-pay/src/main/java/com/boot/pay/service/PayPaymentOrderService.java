@@ -1,12 +1,15 @@
 package com.boot.pay.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.boot.pay.domain.PayPaymentOrder;
 import com.boot.pay.payment.dto.CreatePayDTO;
 import com.boot.pay.payment.dto.ExecutePayDTO;
 import com.boot.pay.payment.vo.CreatePayVO;
 import com.boot.pay.payment.vo.ExecutePayVO;
+import com.boot.pay.payment.vo.PayOrderListVO;
 import com.boot.pay.payment.vo.PayOrderVO;
 import com.baomidou.mybatisplus.extension.service.IService;
+import java.time.LocalDateTime;
 
 /**
 * @author quannnn
@@ -50,6 +53,24 @@ public interface PayPaymentOrderService extends IService<PayPaymentOrder> {
      * @return 本次关闭的订单数量
      */
     int closeExpiredOrders();
+
+    /**
+     * 支付订单分页列表（运营后台）
+     * <p>
+     * 筛选条件：支付单号/商户订单号/商户号模糊匹配，状态精确匹配，创建时间范围
+     *
+     * @param page      页码
+     * @param pageSize  每页条数
+     * @param paymentNo 支付单号（模糊）
+     * @param orderNo   商户订单号（模糊）
+     * @param merchantNo 商户编号（模糊，先转 merchantId 再查订单表）
+     * @param status    支付状态
+     * @param startTime 创建开始时间
+     * @param endTime   创建结束时间
+     * @return 分页列表
+     */
+    IPage<PayOrderListVO> listPage(Integer page, Integer pageSize, String paymentNo, String orderNo,
+                                   String merchantNo, Integer status, LocalDateTime startTime, LocalDateTime endTime);
 
     /**
      * 执行支付（支付执行引擎核心入口）

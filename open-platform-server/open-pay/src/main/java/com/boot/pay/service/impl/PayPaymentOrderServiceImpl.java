@@ -5,6 +5,8 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.digest.BCrypt;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.boot.common.exception.BusinessException;
 import com.boot.pay.account.constants.AccountConstants;
@@ -26,6 +28,7 @@ import com.boot.pay.payment.enums.PayStatusEnum;
 import com.boot.pay.payment.exception.PayOptimisticLockException;
 import com.boot.pay.payment.vo.CreatePayVO;
 import com.boot.pay.payment.vo.ExecutePayVO;
+import com.boot.pay.payment.vo.PayOrderListVO;
 import com.boot.pay.payment.vo.PayOrderVO;
 import com.boot.pay.service.PayAccountFlowService;
 import com.boot.pay.service.PayPaymentNotifyService;
@@ -40,8 +43,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
 * @author quannnn
@@ -436,5 +444,81 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
                 .statusDesc(statusEnum != null ? statusEnum.getDesc() : "未知")
                 .expireTime(order.getExpireTime())
                 .build();
+    }
+
+    @Override
+    public IPage<PayOrderListVO> listPage(Integer page, Integer pageSize, String paymentNo, String orderNo,
+                                          String merchantNo, Integer status, LocalDateTime startTime, LocalDateTime endTime) {
+        LambdaQueryWrapper<PayPaymentOrder> wrapper = new LambdaQueryWrapper<>();
+        if (paymentNo != null && !paymentNo.isBlank()) {
+            wrapper.like(PayPaymentOrder::getPaymentNo, paymentNo);
+        }
+        if (orderNo != null && !orderNo.isBlank()) {
+            wrapper.like(PayPaymentOrder::getOrderNo, orderNo);
+        }
+        if (merchantNo != null && !merchantNo.isBlank()) {
+            // 订单表只存 merchant_id，按商户号模糊匹配先转出商户ID集合
+            List<Long> merchantIds = payMerchantMapper.selectList(
+                            new LambdaQueryWrapper<PayMerchant>()
+                                    .like(PayMerchant::getMerchantNo, merchantNo)
+                                    .select(PayMerchant::getId))
+                    .stream().map(PayMerchant::getId).collect(Collectors.toList());
+            if (merchantIds.isEmpty()) {
+                // 无匹配商户，直接返回空页
+                Page<PayOrderListVO> empty = new Page<>(page, pageSize);
+                empty.setRecords(List.of());
+                return empty;
+            }
+            wrapper.in(PayPaymentOrder::getMerchantId, merchantIds);
+        }
+        if (status != null) {
+            wrapper.eq(PayPaymentOrder::getStatus, status);
+        }
+        if (startTime != null) {
+            wrapper.ge(PayPaymentOrder::getCreateTime, startTime);
+        }
+        if (endTime != null) {
+            wrapper.le(PayPaymentOrder::getCreateTime, endTime);
+        }
+        wrapper.orderByDesc(PayPaymentOrder::getCreateTime);
+
+        Page<PayPaymentOrder> result = this.page(new Page<>(page, pageSize), wrapper);
+
+        // 批量回填商户编号/名称
+        Map<Long, PayMerchant> merchantMap = buildMerchantMap(result.getRecords());
+
+        return result.convert(o -> {
+            PayMerchant merchant = merchantMap.get(o.getMerchantId());
+            PayStatusEnum statusEnum = PayStatusEnum.of(o.getStatus());
+            return PayOrderListVO.builder()
+                    .paymentNo(o.getPaymentNo())
+                    .orderNo(o.getOrderNo())
+                    .merchantNo(merchant != null ? merchant.getMerchantNo() : null)
+                    .merchantName(merchant != null ? merchant.getMerchantName() : null)
+                    .subject(o.getSubject())
+                    .amount(o.getAmount())
+                    .feeAmount(o.getFeeAmount())
+                    .settleAmount(o.getSettleAmount())
+                    .status(o.getStatus())
+                    .statusName(statusEnum != null ? statusEnum.getDesc() : "未知")
+                    .payTime(o.getPayTime() != null ? o.getPayTime().toString() : null)
+                    .createTime(o.getCreateTime() != null ? o.getCreateTime().toString() : null)
+                    .build();
+        });
+    }
+
+    /**
+     * 批量查询订单涉及的商户，按商户ID组装 Map
+     */
+    private Map<Long, PayMerchant> buildMerchantMap(List<PayPaymentOrder> orders) {
+        Set<Long> merchantIds = orders.stream()
+                .map(PayPaymentOrder::getMerchantId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        if (merchantIds.isEmpty()) {
+            return Map.of();
+        }
+        return payMerchantMapper.selectBatchIds(merchantIds).stream()
+                .collect(Collectors.toMap(PayMerchant::getId, m -> m));
     }
 }
