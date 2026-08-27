@@ -2,12 +2,14 @@ package com.boot.pay.payment.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.boot.common.result.Result;
+import com.boot.pay.payment.vo.PayOrderDetailVO;
 import com.boot.pay.payment.vo.PayOrderListVO;
 import com.boot.pay.service.PayPaymentOrderService;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -39,5 +41,13 @@ public class PayOrderAdminController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime startTime,
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
         return Result.success(payPaymentOrderService.listPage(page, pageSize, paymentNo, orderNo, merchantNo, status, startTime, endTime));
+    }
+
+    /**
+     * 支付订单详情（运营后台，无归属校验，可查任意商户订单）
+     */
+    @GetMapping("/{paymentNo}")
+    public Result<PayOrderDetailVO> detail(@PathVariable String paymentNo) {
+        return Result.success(payPaymentOrderService.detail(paymentNo));
     }
 }

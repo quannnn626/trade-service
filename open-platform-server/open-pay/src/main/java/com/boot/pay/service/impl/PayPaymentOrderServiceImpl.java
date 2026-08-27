@@ -12,11 +12,13 @@ import com.boot.common.exception.BusinessException;
 import com.boot.pay.account.constants.AccountConstants;
 import com.boot.pay.account.enums.AccountFlowTypeEnum;
 import com.boot.pay.account.enums.AccountStatusEnum;
+import com.boot.pay.domain.AuthUser;
 import com.boot.pay.domain.PayMerchant;
 import com.boot.pay.domain.PayMerchantAccount;
 import com.boot.pay.domain.PayPaymentChannel;
 import com.boot.pay.domain.PayPaymentOrder;
 import com.boot.pay.domain.PayUserAccount;
+import com.boot.pay.mapper.AuthUserMapper;
 import com.boot.pay.mapper.PayMerchantAccountMapper;
 import com.boot.pay.mapper.PayMerchantMapper;
 import com.boot.pay.mapper.PayPaymentChannelMapper;
@@ -28,6 +30,7 @@ import com.boot.pay.payment.enums.PayStatusEnum;
 import com.boot.pay.payment.exception.PayOptimisticLockException;
 import com.boot.pay.payment.vo.CreatePayVO;
 import com.boot.pay.payment.vo.ExecutePayVO;
+import com.boot.pay.payment.vo.PayOrderDetailVO;
 import com.boot.pay.payment.vo.PayOrderListVO;
 import com.boot.pay.payment.vo.PayOrderVO;
 import com.boot.pay.service.PayAccountFlowService;
@@ -63,6 +66,9 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
 
     @Resource
     private PayMerchantMapper payMerchantMapper;
+
+    @Resource
+    private AuthUserMapper authUserMapper;
 
     @Resource
     private PayPaymentChannelMapper payPaymentChannelMapper;
@@ -505,6 +511,55 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
                     .createTime(o.getCreateTime() != null ? o.getCreateTime().toString() : null)
                     .build();
         });
+    }
+
+    @Override
+    public PayOrderDetailVO detail(String paymentNo) {
+        PayPaymentOrder order = this.getOne(
+                new LambdaQueryWrapper<PayPaymentOrder>()
+                        .eq(PayPaymentOrder::getPaymentNo, paymentNo));
+        if (order == null) {
+            throw new BusinessException("订单不存在: " + paymentNo);
+        }
+
+        PayMerchant merchant = order.getMerchantId() != null ? payMerchantMapper.selectById(order.getMerchantId()) : null;
+        AuthUser user = order.getUserId() != null ? authUserMapper.selectById(order.getUserId()) : null;
+        PayPaymentChannel channel = order.getChannelId() != null ? payPaymentChannelMapper.selectById(order.getChannelId()) : null;
+        PayStatusEnum statusEnum = PayStatusEnum.of(order.getStatus());
+
+        return PayOrderDetailVO.builder()
+                .paymentNo(order.getPaymentNo())
+                .orderNo(order.getOrderNo())
+                .merchantPaymentNo(order.getMerchantPaymentNo())
+                .merchantNo(merchant != null ? merchant.getMerchantNo() : null)
+                .merchantName(merchant != null ? merchant.getMerchantName() : null)
+                .userId(order.getUserId())
+                .userNo(user != null ? user.getUserNo() : null)
+                .userName(user != null ? user.getUsername() : null)
+                .userPhone(user != null ? user.getPhone() : null)
+                .channelCode(channel != null ? channel.getChannelCode() : null)
+                .channelName(channel != null ? channel.getChannelName() : null)
+                .subject(order.getSubject())
+                .description(order.getDescription())
+                .amount(order.getAmount())
+                .feeAmount(order.getFeeAmount())
+                .settleAmount(order.getSettleAmount())
+                .status(order.getStatus())
+                .statusName(statusEnum != null ? statusEnum.getDesc() : "未知")
+                .clientIp(order.getClientIp())
+                .notifyUrl(order.getNotifyUrl())
+                .returnUrl(order.getReturnUrl())
+                .attach(order.getAttach())
+                .expireTime(order.getExpireTime())
+                .timeoutExpire(order.getTimeoutExpire())
+                .payTime(order.getPayTime())
+                .closeTime(order.getCloseTime())
+                .closeReason(order.getCloseReason())
+                .settleStatus(order.getSettleStatus())
+                .settleTime(order.getSettleTime())
+                .createTime(order.getCreateTime())
+                .updateTime(order.getUpdateTime())
+                .build();
     }
 
     /**

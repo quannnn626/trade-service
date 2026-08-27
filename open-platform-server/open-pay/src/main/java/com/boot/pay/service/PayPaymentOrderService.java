@@ -6,6 +6,7 @@ import com.boot.pay.payment.dto.CreatePayDTO;
 import com.boot.pay.payment.dto.ExecutePayDTO;
 import com.boot.pay.payment.vo.CreatePayVO;
 import com.boot.pay.payment.vo.ExecutePayVO;
+import com.boot.pay.payment.vo.PayOrderDetailVO;
 import com.boot.pay.payment.vo.PayOrderListVO;
 import com.boot.pay.payment.vo.PayOrderVO;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -71,6 +72,17 @@ public interface PayPaymentOrderService extends IService<PayPaymentOrder> {
      */
     IPage<PayOrderListVO> listPage(Integer page, Integer pageSize, String paymentNo, String orderNo,
                                    String merchantNo, Integer status, LocalDateTime startTime, LocalDateTime endTime);
+
+    /**
+     * 支付订单详情（运营后台）
+     * <p>
+     * 无归属校验，可查任意商户订单；回填商户/用户/渠道信息。
+     * 关联的流水/回调/退款记录由 flow/notify/refund 查询接口按 paymentNo 复用，不在此返回。
+     *
+     * @param paymentNo 支付单号
+     * @return 订单详情
+     */
+    PayOrderDetailVO detail(String paymentNo);
 
     /**
      * 执行支付（支付执行引擎核心入口）
