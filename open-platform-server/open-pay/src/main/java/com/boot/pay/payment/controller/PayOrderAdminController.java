@@ -2,14 +2,18 @@ package com.boot.pay.payment.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.boot.common.result.Result;
+import com.boot.pay.payment.dto.ClosePayOrderDTO;
 import com.boot.pay.payment.vo.PayOrderDetailVO;
 import com.boot.pay.payment.vo.PayOrderListVO;
 import com.boot.pay.service.PayPaymentOrderService;
+import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,5 +53,14 @@ public class PayOrderAdminController {
     @GetMapping("/{paymentNo}")
     public Result<PayOrderDetailVO> detail(@PathVariable String paymentNo) {
         return Result.success(payPaymentOrderService.detail(paymentNo));
+    }
+
+    /**
+     * 手动关单（仅待支付状态可关，条件更新保证幂等）
+     */
+    @PostMapping("/close")
+    public Result<Void> close(@Valid @RequestBody ClosePayOrderDTO dto) {
+        payPaymentOrderService.close(dto.getPaymentNo(), dto.getCloseReason());
+        return Result.success();
     }
 }

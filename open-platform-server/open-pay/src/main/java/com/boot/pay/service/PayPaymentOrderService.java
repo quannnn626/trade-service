@@ -56,6 +56,16 @@ public interface PayPaymentOrderService extends IService<PayPaymentOrder> {
     int closeExpiredOrders();
 
     /**
+     * 手动关单（运营后台）
+     * <p>
+     * 仅 WAIT_PAY 状态可关；条件更新（WHERE status = WAIT_PAY）保证并发下的幂等。
+     *
+     * @param paymentNo   支付单号
+     * @param closeReason 关单原因（为空默认"手动关闭"）
+     */
+    void close(String paymentNo, String closeReason);
+
+    /**
      * 支付订单分页列表（运营后台）
      * <p>
      * 筛选条件：支付单号/商户订单号/商户号模糊匹配，状态精确匹配，创建时间范围

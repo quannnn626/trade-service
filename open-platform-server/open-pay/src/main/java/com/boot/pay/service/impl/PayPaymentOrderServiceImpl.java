@@ -221,6 +221,36 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
     }
 
     @Override
+    public void close(String paymentNo, String closeReason) {
+        PayPaymentOrder order = this.getOne(
+                new LambdaQueryWrapper<PayPaymentOrder>()
+                        .eq(PayPaymentOrder::getPaymentNo, paymentNo));
+        if (order == null) {
+            throw new BusinessException("订单不存在: " + paymentNo);
+        }
+        if (!PayStatusEnum.WAIT_PAY.getCode().equals(order.getStatus())) {
+            PayStatusEnum statusEnum = PayStatusEnum.of(order.getStatus());
+            throw new BusinessException("仅待支付状态的订单可关闭，当前状态: "
+                    + (statusEnum != null ? statusEnum.getDesc() : "未知"));
+        }
+
+        // 条件更新保证幂等：查和更新之间订单可能被支付/关闭，WHERE status = WAIT_PAY 兜底
+        Date now = new Date();
+        boolean updated = this.lambdaUpdate()
+                .eq(PayPaymentOrder::getPaymentNo, paymentNo)
+                .eq(PayPaymentOrder::getStatus, PayStatusEnum.WAIT_PAY.getCode())
+                .set(PayPaymentOrder::getStatus, PayStatusEnum.CLOSED.getCode())
+                .set(PayPaymentOrder::getCloseTime, now)
+                .set(PayPaymentOrder::getCloseReason, closeReason != null && !closeReason.isBlank()
+                        ? closeReason : "手动关闭")
+                .update();
+        if (!updated) {
+            throw new BusinessException("订单状态已变更，请刷新后重试");
+        }
+        log.info("手动关单成功: paymentNo={}, reason={}", paymentNo, closeReason);
+    }
+
+    @Override
     public ExecutePayVO executePayment(ExecutePayDTO dto, Long merchantId) {
         // 支付密码校验（锁外校验，失败不占用锁）
         PayUserAccount account = payUserAccountMapper.selectOne(
