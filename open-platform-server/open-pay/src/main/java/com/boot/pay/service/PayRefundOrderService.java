@@ -101,4 +101,14 @@ public interface PayRefundOrderService extends IService<PayRefundOrder> {
                                  String merchantNo, Integer status, Integer auditStatus,
                                  LocalDateTime startTime, LocalDateTime endTime);
 
+    /**
+     * 退款订单详情（运营后台）
+     * <p>
+     * 无归属校验，可查任意商户退款单；回填商户/用户/审核人信息，内嵌关联支付订单关键信息。
+     *
+     * @param refundNo 退款单号
+     * @return 退款单详情
+     */
+    RefundDetailVO detail(String refundNo);
+
 }

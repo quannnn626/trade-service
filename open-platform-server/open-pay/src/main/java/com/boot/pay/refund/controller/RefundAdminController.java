@@ -59,4 +59,12 @@ public class RefundAdminController {
             @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime endTime) {
         return Result.success(payRefundOrderService.listPage(page, pageSize, refundNo, paymentNo, merchantNo, status, auditStatus, startTime, endTime));
     }
+
+    /**
+     * 退款订单详情（运营后台，无归属校验，可查任意商户退款单）
+     */
+    @GetMapping("/{refundNo}")
+    public Result<RefundDetailVO> detail(@PathVariable String refundNo) {
+        return Result.success(payRefundOrderService.detail(refundNo));
+    }
 }

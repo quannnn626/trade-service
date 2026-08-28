@@ -615,6 +615,60 @@ public class PayRefundOrderServiceImpl extends ServiceImpl<PayRefundOrderMapper,
         });
     }
 
+    @Override
+    public RefundDetailVO detail(String refundNo) {
+        PayRefundOrder refundOrder = this.getOne(
+                new LambdaQueryWrapper<PayRefundOrder>()
+                        .eq(PayRefundOrder::getRefundNo, refundNo));
+        if (refundOrder == null) {
+            throw new BusinessException("退款单不存在: " + refundNo);
+        }
+
+        PayMerchant merchant = refundOrder.getMerchantId() != null
+                ? payMerchantMapper.selectById(refundOrder.getMerchantId()) : null;
+        AuthUser user = refundOrder.getUserId() != null
+                ? authUserMapper.selectById(refundOrder.getUserId()) : null;
+        AuthUser auditor = refundOrder.getAuditorId() != null
+                ? authUserMapper.selectById(refundOrder.getAuditorId()) : null;
+        PayPaymentOrder payOrder = refundOrder.getPaymentNo() != null
+                ? payPaymentOrderMapper.selectOne(
+                        new LambdaQueryWrapper<PayPaymentOrder>()
+                                .eq(PayPaymentOrder::getPaymentNo, refundOrder.getPaymentNo()))
+                : null;
+
+        return RefundDetailVO.builder()
+                .refundNo(refundOrder.getRefundNo())
+                .paymentNo(refundOrder.getPaymentNo())
+                .merchantRefundNo(refundOrder.getMerchantRefundNo())
+                .merchantNo(merchant != null ? merchant.getMerchantNo() : null)
+                .merchantName(merchant != null ? merchant.getMerchantName() : null)
+                .userId(refundOrder.getUserId())
+                .userName(user != null ? user.getUsername() : null)
+                .refundAmount(refundOrder.getRefundAmount())
+                .refundReason(refundOrder.getRefundReason())
+                .refundType(refundOrder.getRefundType())
+                .refundTypeName(buildRefundTypeName(refundOrder.getRefundType()))
+                .applyAmount(refundOrder.getApplyAmount())
+                .actualAmount(refundOrder.getActualAmount())
+                .feeRefund(refundOrder.getFeeRefund())
+                .refundChannel(refundOrder.getRefundChannel())
+                .status(refundOrder.getStatus())
+                .statusName(buildStatusName(refundOrder.getStatus()))
+                .auditStatus(refundOrder.getAuditStatus())
+                .auditStatusName(buildAuditStatusName(refundOrder.getAuditStatus()))
+                .auditorId(refundOrder.getAuditorId())
+                .auditorName(auditor != null ? auditor.getUsername() : null)
+                .auditTime(refundOrder.getAuditTime())
+                .failReason(refundOrder.getFailReason())
+                .notifyUrl(refundOrder.getNotifyUrl())
+                .applyTime(refundOrder.getApplyTime())
+                .finishTime(refundOrder.getFinishTime())
+                .createTime(refundOrder.getCreateTime())
+                .updateTime(refundOrder.getUpdateTime())
+                .order(buildOrderRef(payOrder))
+                .build();
+    }
+
     /**
      * 批量查询退款单涉及的商户，按商户ID组装 Map
      */
