@@ -1,10 +1,14 @@
 package com.boot.pay.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.boot.pay.domain.PayRefundOrder;
 import com.boot.pay.refund.dto.AuditRefundDTO;
 import com.boot.pay.refund.dto.RefundCreateDTO;
+import com.boot.pay.refund.vo.RefundDetailVO;
+import com.boot.pay.refund.vo.RefundListVO;
 import com.boot.pay.refund.vo.RefundVO;
 import com.baomidou.mybatisplus.extension.service.IService;
+import java.time.LocalDateTime;
 
 /**
 * @author quannnn
@@ -76,5 +80,25 @@ public interface PayRefundOrderService extends IService<PayRefundOrder> {
      * @return 驳回后的退款单信息
      */
     RefundVO auditRejectTx(Long refundOrderId, Long auditorId, String reason);
+
+    /**
+     * 退款订单分页列表（运营后台）
+     * <p>
+     * 筛选：退款单号/支付单号/商户号模糊匹配，退款状态/审核状态精确匹配，创建时间范围。
+     *
+     * @param page        页码
+     * @param pageSize    每页条数
+     * @param refundNo    退款单号（模糊）
+     * @param paymentNo   支付单号（模糊，支付订单详情页复用）
+     * @param merchantNo  商户编号（模糊，先转 merchantId 再查退款单表）
+     * @param status      退款状态
+     * @param auditStatus 审核状态（退款审核页筛"待审核"）
+     * @param startTime   创建开始时间
+     * @param endTime     创建结束时间
+     * @return 分页列表
+     */
+    IPage<RefundListVO> listPage(Integer page, Integer pageSize, String refundNo, String paymentNo,
+                                 String merchantNo, Integer status, Integer auditStatus,
+                                 LocalDateTime startTime, LocalDateTime endTime);
 
 }

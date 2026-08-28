@@ -5,16 +5,22 @@ import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.boot.common.exception.BusinessException;
 import com.boot.pay.account.constants.AccountConstants;
 import com.boot.pay.account.enums.AccountFlowTypeEnum;
 import com.boot.pay.account.enums.AccountStatusEnum;
+import com.boot.pay.domain.AuthUser;
+import com.boot.pay.domain.PayMerchant;
 import com.boot.pay.domain.PayMerchantAccount;
 import com.boot.pay.domain.PayPaymentOrder;
 import com.boot.pay.domain.PayRefundOrder;
 import com.boot.pay.domain.PayUserAccount;
+import com.boot.pay.mapper.AuthUserMapper;
 import com.boot.pay.mapper.PayMerchantAccountMapper;
+import com.boot.pay.mapper.PayMerchantMapper;
 import com.boot.pay.mapper.PayPaymentOrderMapper;
 import com.boot.pay.mapper.PayRefundOrderMapper;
 import com.boot.pay.mapper.PayUserAccountMapper;
@@ -26,6 +32,8 @@ import com.boot.pay.refund.dto.RefundCreateDTO;
 import com.boot.pay.refund.enums.RefundAuditStatusEnum;
 import com.boot.pay.refund.enums.RefundStatusEnum;
 import com.boot.pay.refund.enums.RefundTypeEnum;
+import com.boot.pay.refund.vo.RefundDetailVO;
+import com.boot.pay.refund.vo.RefundListVO;
 import com.boot.pay.refund.vo.RefundVO;
 import com.boot.pay.service.PayAccountFlowService;
 import com.boot.pay.service.PayPaymentNotifyService;
@@ -40,9 +48,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 退款订单 Service 实现
@@ -58,6 +70,12 @@ public class PayRefundOrderServiceImpl extends ServiceImpl<PayRefundOrderMapper,
 
     @Resource
     private PayPaymentOrderMapper payPaymentOrderMapper;
+
+    @Resource
+    private PayMerchantMapper payMerchantMapper;
+
+    @Resource
+    private AuthUserMapper authUserMapper;
 
     @Resource
     private PayUserAccountMapper payUserAccountMapper;
@@ -526,5 +544,121 @@ public class PayRefundOrderServiceImpl extends ServiceImpl<PayRefundOrderMapper,
                 .auditStatus(refundOrder.getAuditStatus())
                 .finishTime(refundOrder.getFinishTime())
                 .build();
+    }
+
+    @Override
+    public IPage<RefundListVO> listPage(Integer page, Integer pageSize, String refundNo, String paymentNo,
+                                        String merchantNo, Integer status, Integer auditStatus,
+                                        LocalDateTime startTime, LocalDateTime endTime) {
+        LambdaQueryWrapper<PayRefundOrder> wrapper = new LambdaQueryWrapper<>();
+        if (refundNo != null && !refundNo.isBlank()) {
+            wrapper.like(PayRefundOrder::getRefundNo, refundNo);
+        }
+        if (paymentNo != null && !paymentNo.isBlank()) {
+            wrapper.like(PayRefundOrder::getPaymentNo, paymentNo);
+        }
+        if (merchantNo != null && !merchantNo.isBlank()) {
+            // 退款单表只存 merchant_id，按商户号模糊匹配先转出商户ID集合
+            List<Long> merchantIds = payMerchantMapper.selectList(
+                            new LambdaQueryWrapper<PayMerchant>()
+                                    .like(PayMerchant::getMerchantNo, merchantNo)
+                                    .select(PayMerchant::getId))
+                    .stream().map(PayMerchant::getId).collect(Collectors.toList());
+            if (merchantIds.isEmpty()) {
+                // 无匹配商户，直接返回空页
+                Page<RefundListVO> empty = new Page<>(page, pageSize);
+                empty.setRecords(List.of());
+                return empty;
+            }
+            wrapper.in(PayRefundOrder::getMerchantId, merchantIds);
+        }
+        if (status != null) {
+            wrapper.eq(PayRefundOrder::getStatus, status);
+        }
+        if (auditStatus != null) {
+            wrapper.eq(PayRefundOrder::getAuditStatus, auditStatus);
+        }
+        if (startTime != null) {
+            wrapper.ge(PayRefundOrder::getCreateTime, startTime);
+        }
+        if (endTime != null) {
+            wrapper.le(PayRefundOrder::getCreateTime, endTime);
+        }
+        wrapper.orderByDesc(PayRefundOrder::getCreateTime);
+
+        Page<PayRefundOrder> result = this.page(new Page<>(page, pageSize), wrapper);
+
+        // 批量回填商户编号/名称
+        Map<Long, PayMerchant> merchantMap = buildMerchantMap(result.getRecords());
+
+        return result.convert(o -> {
+            PayMerchant merchant = merchantMap.get(o.getMerchantId());
+            return RefundListVO.builder()
+                    .refundNo(o.getRefundNo())
+                    .paymentNo(o.getPaymentNo())
+                    .merchantRefundNo(o.getMerchantRefundNo())
+                    .merchantNo(merchant != null ? merchant.getMerchantNo() : null)
+                    .merchantName(merchant != null ? merchant.getMerchantName() : null)
+                    .applyAmount(o.getApplyAmount())
+                    .actualAmount(o.getActualAmount())
+                    .feeRefund(o.getFeeRefund())
+                    .refundType(o.getRefundType())
+                    .refundTypeName(buildRefundTypeName(o.getRefundType()))
+                    .status(o.getStatus())
+                    .statusName(buildStatusName(o.getStatus()))
+                    .auditStatus(o.getAuditStatus())
+                    .auditStatusName(buildAuditStatusName(o.getAuditStatus()))
+                    .refundReason(o.getRefundReason())
+                    .finishTime(o.getFinishTime() != null ? o.getFinishTime().toString() : null)
+                    .createTime(o.getCreateTime() != null ? o.getCreateTime().toString() : null)
+                    .build();
+        });
+    }
+
+    /**
+     * 批量查询退款单涉及的商户，按商户ID组装 Map
+     */
+    private Map<Long, PayMerchant> buildMerchantMap(List<PayRefundOrder> refundOrders) {
+        Set<Long> merchantIds = refundOrders.stream()
+                .map(PayRefundOrder::getMerchantId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        if (merchantIds.isEmpty()) {
+            return Map.of();
+        }
+        return payMerchantMapper.selectBatchIds(merchantIds).stream()
+                .collect(Collectors.toMap(PayMerchant::getId, m -> m));
+    }
+
+    /**
+     * 关联支付订单关键信息
+     */
+    private RefundDetailVO.PayOrderRef buildOrderRef(PayPaymentOrder payOrder) {
+        if (payOrder == null) {
+            return null;
+        }
+        PayStatusEnum statusEnum = PayStatusEnum.of(payOrder.getStatus());
+        return RefundDetailVO.PayOrderRef.builder()
+                .orderNo(payOrder.getOrderNo())
+                .subject(payOrder.getSubject())
+                .amount(payOrder.getAmount())
+                .status(payOrder.getStatus())
+                .statusName(statusEnum != null ? statusEnum.getDesc() : "未知")
+                .build();
+    }
+
+    private String buildRefundTypeName(Integer refundType) {
+        RefundTypeEnum e = RefundTypeEnum.of(refundType);
+        return e == null ? null : e.getDesc();
+    }
+
+    private String buildStatusName(Integer status) {
+        RefundStatusEnum e = RefundStatusEnum.of(status);
+        return e == null ? null : e.getDesc();
+    }
+
+    private String buildAuditStatusName(Integer auditStatus) {
+        RefundAuditStatusEnum e = RefundAuditStatusEnum.of(auditStatus);
+        return e == null ? null : e.getDesc();
     }
 }
