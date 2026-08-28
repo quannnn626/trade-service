@@ -1,7 +1,9 @@
 package com.boot.pay.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.boot.pay.account.dto.RealNameAuthDTO;
 import com.boot.pay.account.dto.SetPayPasswordDTO;
+import com.boot.pay.account.vo.AccountListVO;
 import com.boot.pay.account.vo.AccountVO;
 import com.boot.pay.domain.PayUserAccount;
 import com.baomidou.mybatisplus.extension.service.IService;
@@ -36,6 +38,20 @@ public interface PayUserAccountService extends IService<PayUserAccount> {
      * @return 账户信息
      */
     AccountVO getByAccountNo(String accountNo);
+
+    /**
+     * 用户账户分页列表（运营后台）
+     * <p>
+     * 筛选：账户号模糊匹配；用户名/手机号在 auth_user 表，先转 userId 集合再查账户表。
+     *
+     * @param page      页码
+     * @param pageSize  每页条数
+     * @param accountNo 账户编号（模糊）
+     * @param username  用户名（模糊）
+     * @param phone     手机号（模糊）
+     * @return 分页列表
+     */
+    IPage<AccountListVO> listPage(Integer page, Integer pageSize, String accountNo, String username, String phone);
 
     /**
      * 设置或修改支付密码（首次设置无需原密码，修改需验证原密码）

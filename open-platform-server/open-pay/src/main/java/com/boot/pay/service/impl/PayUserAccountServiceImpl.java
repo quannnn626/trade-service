@@ -4,6 +4,8 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.crypto.digest.BCrypt;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.boot.common.exception.BusinessException;
 import com.boot.pay.account.constants.AccountConstants;
@@ -12,13 +14,20 @@ import com.boot.pay.account.dto.SetPayPasswordDTO;
 import com.boot.pay.account.enums.AccountFlowTypeEnum;
 import com.boot.pay.account.enums.AccountStatusEnum;
 import com.boot.pay.account.enums.RealNameAuthEnum;
+import com.boot.pay.account.vo.AccountListVO;
 import com.boot.pay.account.vo.AccountVO;
+import com.boot.pay.domain.AuthUser;
 import com.boot.pay.domain.PayUserAccount;
+import com.boot.pay.mapper.AuthUserMapper;
 import com.boot.pay.mapper.PayUserAccountMapper;
 import com.boot.pay.service.PayAccountFlowService;
 import com.boot.pay.service.PayUserAccountService;
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,6 +45,8 @@ public class PayUserAccountServiceImpl extends ServiceImpl<PayUserAccountMapper,
     implements PayUserAccountService {
 
     private final PayAccountFlowService payAccountFlowService;
+
+    private final AuthUserMapper authUserMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -215,5 +226,75 @@ public class PayUserAccountServiceImpl extends ServiceImpl<PayUserAccountMapper,
                 .realNameAuth(RealNameAuthEnum.REAL.getCode().equals(account.getRealNameAuth()))
                 .status(account.getStatus())
                 .build();
+    }
+
+    @Override
+    public IPage<AccountListVO> listPage(Integer page, Integer pageSize, String accountNo, String username, String phone) {
+        LambdaQueryWrapper<PayUserAccount> wrapper = new LambdaQueryWrapper<>();
+        if (accountNo != null && !accountNo.isBlank()) {
+            wrapper.like(PayUserAccount::getAccountNo, accountNo);
+        }
+        if ((username != null && !username.isBlank()) || (phone != null && !phone.isBlank())) {
+            // 用户名/手机号在 auth_user 表，先模糊查出 userId 集合
+            LambdaQueryWrapper<AuthUser> userWrapper = new LambdaQueryWrapper<>();
+            if (username != null && !username.isBlank()) {
+                userWrapper.like(AuthUser::getUsername, username);
+            }
+            if (phone != null && !phone.isBlank()) {
+                userWrapper.like(AuthUser::getPhone, phone);
+            }
+            List<Long> userIds = authUserMapper.selectList(userWrapper.select(AuthUser::getId))
+                    .stream().map(AuthUser::getId).collect(Collectors.toList());
+            if (userIds.isEmpty()) {
+                // 无匹配用户，直接返回空页
+                Page<AccountListVO> empty = new Page<>(page, pageSize);
+                empty.setRecords(List.of());
+                return empty;
+            }
+            wrapper.in(PayUserAccount::getUserId, userIds);
+        }
+        wrapper.orderByDesc(PayUserAccount::getCreateTime);
+
+        Page<PayUserAccount> result = this.page(new Page<>(page, pageSize), wrapper);
+
+        // 批量回填用户编号/用户名/手机号
+        Map<Long, AuthUser> userMap = buildUserMap(result.getRecords());
+
+        return result.convert(o -> {
+            AuthUser user = userMap.get(o.getUserId());
+            BigDecimal balance = o.getBalance() != null ? o.getBalance() : BigDecimal.ZERO;
+            BigDecimal frozen = o.getFrozenAmount() != null ? o.getFrozenAmount() : BigDecimal.ZERO;
+            AccountStatusEnum statusEnum = AccountStatusEnum.of(o.getStatus());
+            return AccountListVO.builder()
+                    .accountNo(o.getAccountNo())
+                    .userNo(user != null ? user.getUserNo() : null)
+                    .username(user != null ? user.getUsername() : null)
+                    .phone(user != null ? user.getPhone() : null)
+                    .balance(balance)
+                    .frozenAmount(frozen)
+                    .availableBalance(balance.subtract(frozen))
+                    .totalIncome(o.getTotalIncome())
+                    .totalExpense(o.getTotalExpense())
+                    .realNameAuth(RealNameAuthEnum.REAL.getCode().equals(o.getRealNameAuth()))
+                    .status(o.getStatus())
+                    .statusName(statusEnum != null ? statusEnum.getDesc() : "未知")
+                    .createTime(o.getCreateTime() != null ? o.getCreateTime().toString() : null)
+                    .build();
+        });
+    }
+
+    /**
+     * 批量查询账户所属用户，按用户ID组装 Map
+     */
+    private Map<Long, AuthUser> buildUserMap(List<PayUserAccount> accounts) {
+        Set<Long> userIds = accounts.stream()
+                .map(PayUserAccount::getUserId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        if (userIds.isEmpty()) {
+            return Map.of();
+        }
+        return authUserMapper.selectBatchIds(userIds).stream()
+                .collect(Collectors.toMap(AuthUser::getId, u -> u));
     }
 }

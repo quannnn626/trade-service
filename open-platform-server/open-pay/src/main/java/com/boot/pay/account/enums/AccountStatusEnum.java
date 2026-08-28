@@ -17,4 +17,16 @@ public enum AccountStatusEnum {
 
     private final Integer code;
     private final String desc;
+
+    /**
+     * 根据 code 获取枚举
+     */
+    public static AccountStatusEnum of(Integer code) {
+        for (AccountStatusEnum e : values()) {
+            if (e.getCode().equals(code)) {
+                return e;
+            }
+        }
+        return null;
+    }
 }

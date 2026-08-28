@@ -1,10 +1,12 @@
 package com.boot.pay.account.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.boot.common.result.Result;
 import com.boot.pay.account.dto.FreezeAccountDTO;
 import com.boot.pay.account.dto.RealNameAuthDTO;
 import com.boot.pay.account.dto.SetPayPasswordDTO;
 import com.boot.pay.account.dto.UnfreezeAccountDTO;
+import com.boot.pay.account.vo.AccountListVO;
 import com.boot.pay.account.vo.AccountVO;
 import com.boot.pay.service.PayUserAccountService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -45,6 +48,20 @@ public class AccountController {
     @GetMapping("/{accountNo}")
     public Result<AccountVO> detail(@PathVariable String accountNo) {
         return Result.success(payUserAccountService.getByAccountNo(accountNo));
+    }
+
+    /**
+     * 用户账户分页列表（运营后台）
+     * 筛选：账户号（模糊）、用户名/手机号（模糊，查 auth_user 后转 userId）
+     */
+    @GetMapping("/list")
+    public Result<IPage<AccountListVO>> list(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) String accountNo,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String phone) {
+        return Result.success(payUserAccountService.listPage(page, pageSize, accountNo, username, phone));
     }
 
     /**
