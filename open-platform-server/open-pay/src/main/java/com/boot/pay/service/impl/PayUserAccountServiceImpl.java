@@ -297,4 +297,48 @@ public class PayUserAccountServiceImpl extends ServiceImpl<PayUserAccountMapper,
         return authUserMapper.selectBatchIds(userIds).stream()
                 .collect(Collectors.toMap(AuthUser::getId, u -> u));
     }
+
+    @Override
+    public void enable(String accountNo) {
+        PayUserAccount account = this.getOne(
+                new LambdaQueryWrapper<PayUserAccount>()
+                        .eq(PayUserAccount::getAccountNo, accountNo));
+        if (account == null) {
+            throw new BusinessException("账户不存在: " + accountNo);
+        }
+        if (AccountStatusEnum.NORMAL.getCode().equals(account.getStatus())) {
+            return;
+        }
+
+        boolean updated = this.lambdaUpdate()
+                .eq(PayUserAccount::getAccountNo, accountNo)
+                .set(PayUserAccount::getStatus, AccountStatusEnum.NORMAL.getCode())
+                .update();
+        if (!updated) {
+            throw new BusinessException("启用账户失败");
+        }
+        log.info("账户已启用: accountNo={}", accountNo);
+    }
+
+    @Override
+    public void disable(String accountNo) {
+        PayUserAccount account = this.getOne(
+                new LambdaQueryWrapper<PayUserAccount>()
+                        .eq(PayUserAccount::getAccountNo, accountNo));
+        if (account == null) {
+            throw new BusinessException("账户不存在: " + accountNo);
+        }
+        if (AccountStatusEnum.FROZEN.getCode().equals(account.getStatus())) {
+            return;
+        }
+
+        boolean updated = this.lambdaUpdate()
+                .eq(PayUserAccount::getAccountNo, accountNo)
+                .set(PayUserAccount::getStatus, AccountStatusEnum.FROZEN.getCode())
+                .update();
+        if (!updated) {
+            throw new BusinessException("禁用账户失败");
+        }
+        log.info("账户已禁用: accountNo={}", accountNo);
+    }
 }

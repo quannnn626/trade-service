@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -105,5 +106,23 @@ public class AccountController {
                                        HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         return Result.success(payUserAccountService.unfreeze(userId, dto.getAmount()));
+    }
+
+    /**
+     * 启用账户（运营后台，账户状态置为正常）
+     */
+    @PutMapping("/{accountNo}/enable")
+    public Result<Void> enable(@PathVariable String accountNo) {
+        payUserAccountService.enable(accountNo);
+        return Result.success();
+    }
+
+    /**
+     * 禁用账户（运营后台，账户状态置为冻结，禁用后支付/充值被拒）
+     */
+    @PutMapping("/{accountNo}/disable")
+    public Result<Void> disable(@PathVariable String accountNo) {
+        payUserAccountService.disable(accountNo);
+        return Result.success();
     }
 }

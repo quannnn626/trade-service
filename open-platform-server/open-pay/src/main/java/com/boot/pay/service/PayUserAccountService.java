@@ -90,4 +90,22 @@ public interface PayUserAccountService extends IService<PayUserAccount> {
      * @return 本次解冻金额
      */
     BigDecimal unfreeze(Long userId, BigDecimal amount);
+
+    /**
+     * 启用账户（运营后台，账户状态 status 置为正常）
+     * <p>
+     * 启用后用户可正常支付/充值；重复启用直接返回。
+     *
+     * @param accountNo 账户编号
+     */
+    void enable(String accountNo);
+
+    /**
+     * 禁用账户（运营后台，账户状态 status 置为冻结）
+     * <p>
+     * 禁用后支付、充值将被拒绝（已存在的资金不受影响）；重复禁用直接返回。
+     *
+     * @param accountNo 账户编号
+     */
+    void disable(String accountNo);
 }
