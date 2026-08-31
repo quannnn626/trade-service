@@ -108,4 +108,18 @@ public interface PayUserAccountService extends IService<PayUserAccount> {
      * @param accountNo 账户编号
      */
     void disable(String accountNo);
+
+    /**
+     * 超管调账（运营后台）
+     * <p>
+     * amount 正数为加款、负数为扣款；乐观锁防并发，余额不足拒绝扣款；
+     * 同一事务内写流水类型 9（调整），remark 与操作者随流水留痕（审计）。
+     *
+     * @param accountType 账户类型 1-用户 2-商户
+     * @param accountNo   账户编号
+     * @param amount      调账金额（正加负减，不能为 0）
+     * @param remark      调账原因（必填，审计用）
+     * @param operatorId  操作者用户 ID（管理接口登录用户，审计用）
+     */
+    void adjust(Integer accountType, String accountNo, BigDecimal amount, String remark, Long operatorId);
 }

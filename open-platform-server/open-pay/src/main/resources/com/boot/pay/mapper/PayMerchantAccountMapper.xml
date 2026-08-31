@@ -42,4 +42,13 @@
           AND version = #{oldVersion}
           AND balance >= #{amount}
     </update>
+
+    <update id="adjustBalance">
+        UPDATE pay_merchant_account
+        SET balance = balance + #{amount},
+            version = version + 1
+        WHERE merchant_id = #{merchantId}
+          AND version = #{oldVersion}
+          AND balance + #{amount} >= 0
+    </update>
 </mapper>

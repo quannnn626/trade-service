@@ -17,8 +17,10 @@ import com.boot.pay.account.enums.RealNameAuthEnum;
 import com.boot.pay.account.vo.AccountListVO;
 import com.boot.pay.account.vo.AccountVO;
 import com.boot.pay.domain.AuthUser;
+import com.boot.pay.domain.PayMerchantAccount;
 import com.boot.pay.domain.PayUserAccount;
 import com.boot.pay.mapper.AuthUserMapper;
+import com.boot.pay.mapper.PayMerchantAccountMapper;
 import com.boot.pay.mapper.PayUserAccountMapper;
 import com.boot.pay.service.PayAccountFlowService;
 import com.boot.pay.service.PayUserAccountService;
@@ -47,6 +49,8 @@ public class PayUserAccountServiceImpl extends ServiceImpl<PayUserAccountMapper,
     private final PayAccountFlowService payAccountFlowService;
 
     private final AuthUserMapper authUserMapper;
+
+    private final PayMerchantAccountMapper payMerchantAccountMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -340,5 +344,72 @@ public class PayUserAccountServiceImpl extends ServiceImpl<PayUserAccountMapper,
             throw new BusinessException("禁用账户失败");
         }
         log.info("账户已禁用: accountNo={}", accountNo);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void adjust(Integer accountType, String accountNo, BigDecimal amount, String remark, Long operatorId) {
+        if (amount.compareTo(BigDecimal.ZERO) == 0) {
+            throw new BusinessException("调账金额不能为 0");
+        }
+        if (AccountConstants.ACCOUNT_TYPE_USER == accountType) {
+            adjustUserAccount(accountNo, amount, remark, operatorId);
+        } else if (AccountConstants.ACCOUNT_TYPE_MERCHANT == accountType) {
+            adjustMerchantAccount(accountNo, amount, remark, operatorId);
+        } else {
+            throw new BusinessException("账户类型不合法: " + accountType);
+        }
+    }
+
+    /**
+     * 用户账户调账：乐观锁改余额 + 写调整流水
+     */
+    private void adjustUserAccount(String accountNo, BigDecimal amount, String remark, Long operatorId) {
+        PayUserAccount account = this.getOne(
+                new LambdaQueryWrapper<PayUserAccount>()
+                        .eq(PayUserAccount::getAccountNo, accountNo));
+        if (account == null) {
+            throw new BusinessException("用户账户不存在: " + accountNo);
+        }
+
+        // 乐观锁调整余额，0 行说明余额不足或账户已被并发修改
+        int rows = baseMapper.adjustBalance(account.getUserId(), account.getVersion(), amount);
+        if (rows == 0) {
+            throw new BusinessException("账户变动频繁或余额不足，请重试");
+        }
+
+        BigDecimal before = nvl(account.getBalance());
+        payAccountFlowService.recordFlow(AccountConstants.ACCOUNT_TYPE_USER, account.getId(), null,
+                AccountFlowTypeEnum.ADJUST.getCode(), amount,
+                before, before.add(amount),
+                "人工调账-" + remark + "，操作者:" + operatorId);
+        log.info("用户账户调账成功 accountNo={} amount={} operatorId={} remark={}",
+                accountNo, amount, operatorId, remark);
+    }
+
+    /**
+     * 商户账户调账：乐观锁改余额 + 写调整流水
+     */
+    private void adjustMerchantAccount(String accountNo, BigDecimal amount, String remark, Long operatorId) {
+        PayMerchantAccount account = payMerchantAccountMapper.selectOne(
+                new LambdaQueryWrapper<PayMerchantAccount>()
+                        .eq(PayMerchantAccount::getAccountNo, accountNo));
+        if (account == null) {
+            throw new BusinessException("商户账户不存在: " + accountNo);
+        }
+
+        // 乐观锁调整余额，0 行说明余额不足或账户已被并发修改
+        int rows = payMerchantAccountMapper.adjustBalance(account.getMerchantId(), account.getVersion(), amount);
+        if (rows == 0) {
+            throw new BusinessException("账户变动频繁或余额不足，请重试");
+        }
+
+        BigDecimal before = nvl(account.getBalance());
+        payAccountFlowService.recordFlow(AccountConstants.ACCOUNT_TYPE_MERCHANT, account.getId(), null,
+                AccountFlowTypeEnum.ADJUST.getCode(), amount,
+                before, before.add(amount),
+                "人工调账-" + remark + "，操作者:" + operatorId);
+        log.info("商户账户调账成功 accountNo={} amount={} operatorId={} remark={}",
+                accountNo, amount, operatorId, remark);
     }
 }

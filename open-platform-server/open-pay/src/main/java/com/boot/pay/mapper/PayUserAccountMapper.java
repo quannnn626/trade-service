@@ -70,6 +70,21 @@ public interface PayUserAccountMapper extends BaseMapper<PayUserAccount> {
     int subtractFrozenAmount(@Param("userId") Long userId,
                              @Param("oldVersion") Integer oldVersion,
                              @Param("amount") BigDecimal amount);
+
+    /**
+     * 乐观锁调整余额（超管人工调账）
+     * <p>
+     * amount 正数为加款、负数为扣款；balance + amount >= 0 兜底防止余额变负。
+     * 不累计 total_income/total_expense（调账为人工修正，不影响业务统计口径）。
+     *
+     * @param userId     用户 ID
+     * @param oldVersion 读取时的版本号
+     * @param amount     调账金额（可正可负）
+     * @return 受影响行数，0 表示余额不足或版本冲突
+     */
+    int adjustBalance(@Param("userId") Long userId,
+                      @Param("oldVersion") Integer oldVersion,
+                      @Param("amount") BigDecimal amount);
 }
 
 

@@ -2,6 +2,7 @@ package com.boot.pay.account.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.boot.common.result.Result;
+import com.boot.pay.account.dto.AdjustAccountDTO;
 import com.boot.pay.account.dto.FreezeAccountDTO;
 import com.boot.pay.account.dto.RealNameAuthDTO;
 import com.boot.pay.account.dto.SetPayPasswordDTO;
@@ -106,6 +107,19 @@ public class AccountController {
                                        HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
         return Result.success(payUserAccountService.unfreeze(userId, dto.getAmount()));
+    }
+
+    /**
+     * 超管调账（运营后台，amount 正数为加款、负数为扣款）
+     * <p>
+     * 依赖超管权限：当前管理接口仅要求登录，角色体系建立后收紧。
+     */
+    @PostMapping("/adjust")
+    public Result<Void> adjust(@Valid @RequestBody AdjustAccountDTO dto, HttpServletRequest request) {
+        Long operatorId = (Long) request.getAttribute("userId");
+        payUserAccountService.adjust(dto.getAccountType(), dto.getAccountNo(), dto.getAmount(),
+                dto.getRemark(), operatorId);
+        return Result.success();
     }
 
     /**

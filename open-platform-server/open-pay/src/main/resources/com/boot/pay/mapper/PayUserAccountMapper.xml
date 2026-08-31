@@ -69,4 +69,13 @@
         WHERE user_id = #{userId}
           AND version = #{oldVersion}
     </update>
+
+    <update id="adjustBalance">
+        UPDATE pay_user_account
+        SET balance = balance + #{amount},
+            version = version + 1
+        WHERE user_id = #{userId}
+          AND version = #{oldVersion}
+          AND balance + #{amount} >= 0
+    </update>
 </mapper>
