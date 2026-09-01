@@ -18,6 +18,7 @@ import com.boot.pay.merchant.dto.MerchantAuditDTO;
 import com.boot.pay.merchant.vo.MerchantApplyVO;
 import com.boot.pay.merchant.vo.MerchantAuditVO;
 import com.boot.pay.merchant.vo.MerchantDetailVO;
+import com.boot.pay.merchant.vo.MerchantAccountVO;
 import com.boot.pay.merchant.vo.MerchantListVO;
 import com.boot.pay.merchant.vo.MerchantSecretVO;
 import com.boot.pay.service.PayMerchantService;
@@ -293,6 +294,42 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
         }
 
         return builder.build();
+    }
+
+    @Override
+    public MerchantAccountVO getAccount(String merchantNo) {
+        PayMerchant merchant = this.getOne(
+                new LambdaQueryWrapper<PayMerchant>()
+                        .eq(PayMerchant::getMerchantNo, merchantNo)
+        );
+        if (merchant == null) {
+            throw new BusinessException("商户不存在: " + merchantNo);
+        }
+
+        PayMerchantAccount account = payMerchantAccountMapper.selectOne(
+                new LambdaQueryWrapper<PayMerchantAccount>()
+                        .eq(PayMerchantAccount::getMerchantId, merchant.getId())
+        );
+        if (account == null) {
+            throw new BusinessException("商户资金账户不存在: " + merchantNo);
+        }
+
+        BigDecimal balance = account.getBalance() != null ? account.getBalance() : BigDecimal.ZERO;
+        BigDecimal frozen = account.getFrozenAmount() != null ? account.getFrozenAmount() : BigDecimal.ZERO;
+
+        return MerchantAccountVO.builder()
+                .merchantNo(merchant.getMerchantNo())
+                .merchantName(merchant.getMerchantName())
+                .accountNo(account.getAccountNo())
+                .balance(balance)
+                .frozenAmount(frozen)
+                .availableBalance(balance.subtract(frozen))
+                .totalIncome(account.getTotalIncome())
+                .totalExpense(account.getTotalExpense())
+                .totalFee(account.getTotalFee())
+                .status(account.getStatus())
+                .createTime(account.getCreateTime() != null ? account.getCreateTime().toString() : null)
+                .build();
     }
 
     @Override

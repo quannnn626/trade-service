@@ -6,6 +6,7 @@ import com.boot.pay.merchant.dto.MerchantApplyDTO;
 import com.boot.pay.merchant.dto.MerchantAuditDTO;
 import com.boot.pay.merchant.vo.MerchantApplyVO;
 import com.boot.pay.merchant.vo.MerchantAuditVO;
+import com.boot.pay.merchant.vo.MerchantAccountVO;
 import com.boot.pay.merchant.vo.MerchantDetailVO;
 import com.boot.pay.merchant.vo.MerchantListVO;
 import com.boot.pay.merchant.vo.MerchantSecretVO;
@@ -71,6 +72,14 @@ public class MerchantController {
     @GetMapping("/{merchantNo}")
     public Result<MerchantDetailVO> detail(@PathVariable String merchantNo) {
         return Result.success(payMerchantService.detail(merchantNo));
+    }
+
+    /**
+     * 商户资金账户（运营后台：商户账户列表页）
+     */
+    @GetMapping("/{merchantNo}/account")
+    public Result<MerchantAccountVO> account(@PathVariable String merchantNo) {
+        return Result.success(payMerchantService.getAccount(merchantNo));
     }
 
     /**

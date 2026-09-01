@@ -8,6 +8,7 @@ import com.boot.pay.merchant.dto.MerchantAuditDTO;
 import com.boot.pay.merchant.vo.MerchantApplyVO;
 import com.boot.pay.merchant.vo.MerchantAuditVO;
 import com.boot.pay.merchant.vo.MerchantDetailVO;
+import com.boot.pay.merchant.vo.MerchantAccountVO;
 import com.boot.pay.merchant.vo.MerchantListVO;
 import com.boot.pay.merchant.vo.MerchantSecretVO;
 
@@ -42,6 +43,16 @@ public interface PayMerchantService extends IService<PayMerchant> {
      * 商户详情（含资金账户）
      */
     MerchantDetailVO detail(String merchantNo);
+
+    /**
+     * 商户资金账户查询（运营后台：商户账户列表页）
+     * <p>
+     * 返回完整资金信息（余额/冻结/累计收入/支出/手续费），比详情接口的账户字段更全。
+     *
+     * @param merchantNo 商户号
+     * @return 商户资金账户信息
+     */
+    MerchantAccountVO getAccount(String merchantNo);
 
     /**
      * 商户分页列表
