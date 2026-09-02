@@ -18,4 +18,16 @@ public enum NotifyStatusEnum {
 
     private final Integer code;
     private final String desc;
+
+    /**
+     * 根据 code 获取枚举
+     */
+    public static NotifyStatusEnum of(Integer code) {
+        for (NotifyStatusEnum e : values()) {
+            if (e.getCode().equals(code)) {
+                return e;
+            }
+        }
+        return null;
+    }
 }

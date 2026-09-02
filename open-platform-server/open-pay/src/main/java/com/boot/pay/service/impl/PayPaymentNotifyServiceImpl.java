@@ -7,6 +7,8 @@ import cn.hutool.http.HttpResponse;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.boot.common.utils.SignUtil;
 import com.boot.pay.domain.PayMerchant;
@@ -19,6 +21,7 @@ import com.boot.pay.mapper.PayPaymentOrderMapper;
 import com.boot.pay.mapper.PayRefundOrderMapper;
 import com.boot.pay.notify.enums.NotifyStatusEnum;
 import com.boot.pay.notify.enums.NotifyTypeEnum;
+import com.boot.pay.notify.vo.NotifyListVO;
 import com.boot.pay.refund.enums.RefundStatusEnum;
 import com.boot.pay.service.PayPaymentNotifyService;
 import jakarta.annotation.Resource;
@@ -29,6 +32,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 支付回调通知 Service 实现
@@ -152,6 +157,82 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
                         record.getPaymentNo(), e.getMessage(), e);
             }
         }
+    }
+
+    @Override
+    public IPage<NotifyListVO> listPage(Integer page, Integer pageSize, String paymentNo, String merchantNo,
+                                        Integer notifyType, Integer notifyStatus) {
+        LambdaQueryWrapper<PayPaymentNotify> wrapper = new LambdaQueryWrapper<>();
+        if (paymentNo != null && !paymentNo.isBlank()) {
+            wrapper.like(PayPaymentNotify::getPaymentNo, paymentNo);
+        }
+        if (merchantNo != null && !merchantNo.isBlank()) {
+            // 通知表只有 merchant_id，先按商户号模糊查出 ID 集合
+            List<Long> merchantIds = payMerchantMapper.selectList(
+                            new LambdaQueryWrapper<PayMerchant>()
+                                    .like(PayMerchant::getMerchantNo, merchantNo)
+                                    .select(PayMerchant::getId))
+                    .stream().map(PayMerchant::getId).collect(Collectors.toList());
+            if (merchantIds.isEmpty()) {
+                // 无匹配商户，直接返回空页
+                Page<NotifyListVO> empty = new Page<>(page, pageSize);
+                empty.setRecords(List.of());
+                return empty;
+            }
+            wrapper.in(PayPaymentNotify::getMerchantId, merchantIds);
+        }
+        if (notifyType != null) {
+            wrapper.eq(PayPaymentNotify::getNotifyType, notifyType);
+        }
+        if (notifyStatus != null) {
+            wrapper.eq(PayPaymentNotify::getNotifyStatus, notifyStatus);
+        }
+        wrapper.orderByDesc(PayPaymentNotify::getCreateTime);
+
+        Page<PayPaymentNotify> result = this.page(new Page<>(page, pageSize), wrapper);
+
+        // 批量回填商户编号/名称
+        Map<Long, PayMerchant> merchantMap = buildMerchantMap(result.getRecords());
+
+        return result.convert(o -> {
+            NotifyTypeEnum typeEnum = NotifyTypeEnum.of(o.getNotifyType());
+            NotifyStatusEnum statusEnum = NotifyStatusEnum.of(o.getNotifyStatus());
+            PayMerchant merchant = merchantMap.get(o.getMerchantId());
+            return NotifyListVO.builder()
+                    .id(o.getId())
+                    .paymentNo(o.getPaymentNo())
+                    .merchantNo(merchant != null ? merchant.getMerchantNo() : null)
+                    .merchantName(merchant != null ? merchant.getMerchantName() : null)
+                    .notifyUrl(o.getNotifyUrl())
+                    .notifyType(o.getNotifyType())
+                    .notifyTypeName(typeEnum != null ? typeEnum.getDesc() : "未知")
+                    .notifyStatus(o.getNotifyStatus())
+                    .notifyStatusName(statusEnum != null ? statusEnum.getDesc() : "未知")
+                    .retryCount(o.getRetryCount())
+                    .maxRetry(o.getMaxRetry())
+                    .nextRetryTime(o.getNextRetryTime() != null ? o.getNextRetryTime().toString() : null)
+                    .lastError(o.getLastError())
+                    .requestData(o.getRequestData())
+                    .responseData(o.getResponseData())
+                    .createTime(o.getCreateTime() != null ? o.getCreateTime().toString() : null)
+                    .updateTime(o.getUpdateTime() != null ? o.getUpdateTime().toString() : null)
+                    .build();
+        });
+    }
+
+    /**
+     * 批量查询通知记录所属商户，按商户ID组装 Map
+     */
+    private Map<Long, PayMerchant> buildMerchantMap(List<PayPaymentNotify> notifies) {
+        Set<Long> merchantIds = notifies.stream()
+                .map(PayPaymentNotify::getMerchantId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        if (merchantIds.isEmpty()) {
+            return Map.of();
+        }
+        return payMerchantMapper.selectBatchIds(merchantIds).stream()
+                .collect(Collectors.toMap(PayMerchant::getId, m -> m));
     }
 
     /**
