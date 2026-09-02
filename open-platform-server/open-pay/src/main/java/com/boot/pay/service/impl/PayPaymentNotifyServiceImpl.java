@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.boot.common.exception.BusinessException;
 import com.boot.common.utils.SignUtil;
 import com.boot.pay.domain.PayMerchant;
 import com.boot.pay.domain.PayPaymentNotify;
@@ -156,6 +157,31 @@ public class PayPaymentNotifyServiceImpl extends ServiceImpl<PayPaymentNotifyMap
                 log.error("回调重试发送异常 paymentNo={} 原因: {}",
                         record.getPaymentNo(), e.getMessage(), e);
             }
+        }
+    }
+
+    @Override
+    public void retry(Long notifyId) {
+        PayPaymentNotify record = getById(notifyId);
+        if (record == null) {
+            throw new BusinessException("通知记录不存在: " + notifyId);
+        }
+        if (NotifyStatusEnum.SUCCESS.getCode().equals(record.getNotifyStatus())) {
+            throw new BusinessException("该通知已发送成功，无需重试");
+        }
+        // 重置重试状态后立即发送一次，失败后由 markFailed 重新排期自动重试
+        record.setNotifyStatus(NotifyStatusEnum.WAIT.getCode());
+        record.setRetryCount(0);
+        record.setNextRetryTime(null);
+        record.setLastError(null);
+        updateById(record);
+
+        log.info("手动重试回调通知 notifyId={} paymentNo={} notifyType={}",
+                notifyId, record.getPaymentNo(), record.getNotifyType());
+        if (NotifyTypeEnum.PAY_SUCCESS.getCode().equals(record.getNotifyType())) {
+            sendNotify(record);
+        } else {
+            sendRefundNotify(record);
         }
     }
 

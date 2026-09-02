@@ -49,4 +49,14 @@ public interface PayPaymentNotifyService extends IService<PayPaymentNotify> {
      */
     void retryNotify();
 
+    /**
+     * 手动重试回调通知（运营后台）
+     * <p>
+     * 仅非成功状态可重试：重置重试计数与下次重试时间后立即发送一次，
+     * 发送失败后重新进入自动退避重试。
+     *
+     * @param notifyId 通知记录 ID
+     */
+    void retry(Long notifyId);
+
 }

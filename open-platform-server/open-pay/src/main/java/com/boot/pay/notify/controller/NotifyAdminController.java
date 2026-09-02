@@ -6,6 +6,7 @@ import com.boot.pay.notify.vo.NotifyListVO;
 import com.boot.pay.service.PayPaymentNotifyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,5 +37,15 @@ public class NotifyAdminController {
             @RequestParam(required = false) Integer notifyStatus) {
         return Result.success(payPaymentNotifyService.listPage(page, pageSize, paymentNo, merchantNo,
                 notifyType, notifyStatus));
+    }
+
+    /**
+     * 手动重试回调通知
+     * 仅非成功状态可重试，重置重试计数后立即发送一次
+     */
+    @PostMapping("/retry")
+    public Result<Void> retry(@RequestParam("notifyId") Long notifyId) {
+        payPaymentNotifyService.retry(notifyId);
+        return Result.success();
     }
 }
