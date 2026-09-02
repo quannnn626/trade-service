@@ -1,7 +1,10 @@
 package com.boot.pay.service;
 
-import com.boot.pay.domain.PayPaymentChannel;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.boot.pay.channel.vo.ChannelListVO;
+import com.boot.pay.domain.PayPaymentChannel;
+
+import java.util.List;
 
 /**
 * @author quannnn
@@ -9,5 +12,10 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2026-08-03 12:26:43
 */
 public interface PayPaymentChannelService extends IService<PayPaymentChannel> {
+
+    /**
+     * 支付渠道列表（运营后台），按 ID 升序返回
+     */
+    List<ChannelListVO> listAll();
 
 }
