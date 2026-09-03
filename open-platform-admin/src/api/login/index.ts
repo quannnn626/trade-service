@@ -13,10 +13,7 @@ export const refreshApi = (data: { userId: number; refreshToken: string }) => {
   return request.post<string>({ url: '/api/auth/refresh', data })
 }
 
-export const registerApi = (data: {
-  username: string
-  password: string
-}): Promise<IResponse> => {
+export const registerApi = (data: { username: string; password: string }): Promise<IResponse> => {
   return request.post({ url: '/api/auth/register', data })
 }
 

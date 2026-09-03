@@ -53,7 +53,10 @@ const defaultResponseInterceptors = (response: AxiosResponse) => {
 
 let isRefreshing = false
 
-const refreshAndRetry = async (response: AxiosResponse, userStore: ReturnType<typeof useUserStoreWithOut>) => {
+const refreshAndRetry = async (
+  response: AxiosResponse,
+  userStore: ReturnType<typeof useUserStoreWithOut>
+) => {
   isRefreshing = true
   try {
     const res = await axios.post('/api/auth/refresh', {
