@@ -5,6 +5,8 @@ import com.boot.pay.channel.vo.ChannelListVO;
 import com.boot.pay.service.PayPaymentChannelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,5 +30,23 @@ public class ChannelAdminController {
     @GetMapping("/list")
     public Result<List<ChannelListVO>> list() {
         return Result.success(payPaymentChannelService.listAll());
+    }
+
+    /**
+     * 启用渠道
+     */
+    @PutMapping("/{channelCode}/enable")
+    public Result<Void> enable(@PathVariable String channelCode) {
+        payPaymentChannelService.enable(channelCode);
+        return Result.success();
+    }
+
+    /**
+     * 停用渠道
+     */
+    @PutMapping("/{channelCode}/disable")
+    public Result<Void> disable(@PathVariable String channelCode) {
+        payPaymentChannelService.disable(channelCode);
+        return Result.success();
     }
 }

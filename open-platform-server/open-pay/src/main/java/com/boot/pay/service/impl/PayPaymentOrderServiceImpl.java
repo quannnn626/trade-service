@@ -12,6 +12,7 @@ import com.boot.common.exception.BusinessException;
 import com.boot.pay.account.constants.AccountConstants;
 import com.boot.pay.account.enums.AccountFlowTypeEnum;
 import com.boot.pay.account.enums.AccountStatusEnum;
+import com.boot.pay.channel.enums.ChannelStatusEnum;
 import com.boot.pay.domain.AuthUser;
 import com.boot.pay.domain.PayMerchant;
 import com.boot.pay.domain.PayMerchantAccount;
@@ -129,7 +130,7 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
         if (channel == null) {
             throw new BusinessException("支付渠道不存在：" + dto.getChannelCode());
         }
-        if (channel.getStatus() == null || channel.getStatus() != 1) {
+        if (!ChannelStatusEnum.ENABLE.getCode().equals(channel.getStatus())) {
             throw new BusinessException("支付渠道未启用：" + dto.getChannelCode());
         }
 
