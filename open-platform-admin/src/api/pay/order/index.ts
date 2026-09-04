@@ -1,5 +1,12 @@
 import request from '@/axios'
-import type { PageResult, PayOrderItem, PayOrderPageParams } from './types'
+import type { PageResult, PayOrderDetail, PayOrderItem, PayOrderPageParams } from './types'
+
+/**
+ * 支付订单详情（运营后台，无归属校验，可查任意商户订单）
+ */
+export const getPayOrderDetailApi = (paymentNo: string): Promise<IResponse<PayOrderDetail>> => {
+  return request.get({ url: `/api/pay/order/${paymentNo}` })
+}
 
 /**
  * 支付订单分页列表（运营后台）

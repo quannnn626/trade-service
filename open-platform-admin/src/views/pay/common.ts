@@ -1,0 +1,56 @@
+/**
+ * 支付模块公共展示工具（金额格式化、状态标签映射）
+ */
+
+/** 金额格式化：元 → ¥xx.xx（空值显示 -） */
+export const fmtAmount = (value?: number | null) =>
+  value === null || value === undefined ? '-' : `¥${Number(value).toFixed(2)}`
+
+/** 时间格式化：去掉 ISO 的 T 与毫秒/时区尾巴，与库内 datetime 原值一致（不做时区换算） */
+export const fmtTime = (value?: string | null) =>
+  !value ? '-' : value.replace('T', ' ').slice(0, 19)
+
+/** 支付状态筛选选项（对应后端 PayStatusEnum code） */
+export const payStatusOptions = [
+  { value: 0, label: '待支付' },
+  { value: 1, label: '支付中' },
+  { value: 2, label: '支付成功' },
+  { value: 3, label: '支付失败' },
+  { value: 4, label: '已关闭' },
+  { value: 5, label: '退款中' },
+  { value: 6, label: '已退款' }
+]
+
+/** 支付状态标签颜色 */
+export const statusTagType = (status?: number) => {
+  const map: Record<number, 'success' | 'info' | 'warning' | 'danger' | 'primary'> = {
+    0: 'warning', // 待支付
+    1: 'primary', // 支付中
+    2: 'success', // 支付成功
+    3: 'danger', // 支付失败
+    4: 'info', // 已关闭
+    5: 'warning', // 退款中
+    6: 'info' // 已退款
+  }
+  return (status !== undefined ? map[status] : undefined) || 'info'
+}
+
+/** 回调通知状态标签颜色（对应 NotifyStatusEnum：0待通知 1成功 2失败达上限） */
+export const notifyStatusTagType = (status: number) => {
+  const map: Record<number, 'success' | 'info' | 'warning' | 'danger'> = {
+    0: 'warning', // 待通知
+    1: 'success', // 通知成功
+    2: 'danger' // 失败达上限
+  }
+  return map[status] || 'info'
+}
+
+/** 退款状态标签颜色（对应 RefundStatusEnum：0处理中 1成功 2失败） */
+export const refundStatusTagType = (status: number) => {
+  const map: Record<number, 'success' | 'info' | 'warning' | 'danger'> = {
+    0: 'warning', // 处理中
+    1: 'success', // 成功
+    2: 'danger' // 失败
+  }
+  return map[status] || 'info'
+}

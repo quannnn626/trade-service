@@ -8,6 +8,7 @@ import { useCrudSchemas } from '@/hooks/web/useCrudSchemas'
 import type { CrudSchema } from '@/hooks/web/useCrudSchemas'
 import { getPayOrderPageApi, closePayOrderApi } from '@/api/pay/order'
 import type { PageResult, PayOrderItem } from '@/api/pay/order/types'
+import { fmtAmount, payStatusOptions, statusTagType } from '../common'
 import { ElMessage, ElMessageBox, ElTag } from 'element-plus'
 import { reactive, ref, unref } from 'vue'
 import { useRouter } from 'vue-router'
@@ -18,33 +19,6 @@ defineOptions({
 
 const router = useRouter()
 const { push } = router
-
-// 支付状态（对应后端 PayStatusEnum）
-const payStatusOptions = [
-  { value: 0, label: '待支付' },
-  { value: 1, label: '支付中' },
-  { value: 2, label: '支付成功' },
-  { value: 3, label: '支付失败' },
-  { value: 4, label: '已关闭' },
-  { value: 5, label: '退款中' },
-  { value: 6, label: '已退款' }
-]
-
-const statusTagType = (status: number) => {
-  const map: Record<number, 'success' | 'info' | 'warning' | 'danger' | 'primary'> = {
-    0: 'warning', // 待支付
-    1: 'primary', // 支付中
-    2: 'success', // 支付成功
-    3: 'danger', // 支付失败
-    4: 'info', // 已关闭
-    5: 'warning', // 退款中
-    6: 'info' // 已退款
-  }
-  return map[status] || 'info'
-}
-
-const fmtAmount = (value?: number) =>
-  value === null || value === undefined ? '-' : `¥${Number(value).toFixed(2)}`
 
 const searchParams = ref({})
 const setSearchParams = (params: any) => {

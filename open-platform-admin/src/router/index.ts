@@ -118,8 +118,17 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
           title: '支付订单',
           noCache: true
         }
+      },
+      {
+        // 详情页：从列表行进入，不进菜单
+        path: 'order/:paymentNo',
+        component: () => import('@/views/pay/order/detail.vue'),
+        name: 'PayOrderDetail',
+        meta: {
+          title: '支付订单详情',
+          hidden: true
+        }
       }
-      // 支付订单详情 /pay/order/:paymentNo 路由随详情页任务注册
     ]
   }
 ]
