@@ -40,40 +40,74 @@ const defaultResponseInterceptors = (response: AxiosResponse) => {
   if (response?.config?.responseType === 'blob') {
     // 如果是文件流，直接过
     return response
-  } else if (response.data.code === SUCCESS_CODE) {
-    return response.data
-  } else {
-    ElMessage.error(response?.data?.message)
-    if (response?.data?.code === 401) {
-      const userStore = useUserStoreWithOut()
-      return refreshAndRetry(response, userStore)
-    }
   }
+  if (response.data.code === SUCCESS_CODE) {
+    return response.data
+  }
+  if (response.data.code === 401) {
+    // 登录态过期：静默刷新 token 并重试；刷新失败时内部会登出，不在此弹错
+    return refreshAndRetry(response)
+  }
+  ElMessage.error(response?.data?.message)
+  return response.data
 }
 
-let isRefreshing = false
+// 刷新请求单飞：并发 401 只发一次刷新，其余请求排队拿同一个新 token
+let refreshingPromise: Promise<string> | null = null
 
-const refreshAndRetry = async (
-  response: AxiosResponse,
-  userStore: ReturnType<typeof useUserStoreWithOut>
-) => {
-  isRefreshing = true
+const refreshAccessToken = (): Promise<string> => {
+  const userStore = useUserStoreWithOut()
+  if (!refreshingPromise) {
+    refreshingPromise = axios
+      .post('/api/auth/refresh', {
+        userId: userStore.getUserId,
+        refreshToken: userStore.getRefreshToken
+      })
+      .then((res) => {
+        // 后端约定：错误同样返回 HTTP 200 + 业务码，必须检查，否则 null 会被当有效 token
+        const body = res.data
+        if (!body || body.code !== SUCCESS_CODE || !body.data) {
+          throw new Error(body?.message || '刷新登录状态失败')
+        }
+        userStore.setToken(body.data)
+        return body.data
+      })
+      .catch((err) => {
+        // 刷新失败（refreshToken 在服务端已失效）：清登录态回登录页
+        ElMessage.error(err?.message || '登录已过期，请重新登录')
+        userStore.reset()
+        throw err
+      })
+      .finally(() => {
+        refreshingPromise = null
+      })
+  }
+  return refreshingPromise
+}
+
+const refreshAndRetry = async (response: AxiosResponse) => {
   try {
-    const res = await axios.post('/api/auth/refresh', {
-      userId: userStore.getUserId,
-      refreshToken: userStore.getRefreshToken
-    })
-    const newToken = res.data.data as string
-    userStore.setToken(newToken)
-    // 重试原请求
-    response.config.headers['Authorization'] = newToken
-    const retryRes = await axios.request(response.config)
-    // 由上层拦截器处理 — 重新走一遍当前拦截器逻辑
-    return defaultResponseInterceptors(retryRes)
+    await refreshAccessToken()
+    // 用新 token 重试原请求（裸 axios，避免递归走拦截器）
+    const cfg = { ...response.config }
+    delete cfg.signal
+    cfg.headers.set('Authorization', useUserStoreWithOut().getToken || '')
+    const retryRes = await axios.request(cfg)
+    const body = retryRes.data
+    if (body.code === SUCCESS_CODE) {
+      return body
+    }
+    // 新 token 依旧 401（如用户被禁用）：不再无限重试，登出
+    if (body.code === 401) {
+      ElMessage.error(body.message || '登录已过期，请重新登录')
+      useUserStoreWithOut().reset()
+      return body
+    }
+    ElMessage.error(body?.message)
+    return body
   } catch {
-    userStore.logout()
-  } finally {
-    isRefreshing = false
+    // 刷新失败已登出，返回错误结果避免业务层无响应
+    return { code: 401, message: '登录已过期，请重新登录', data: null }
   }
 }
 
