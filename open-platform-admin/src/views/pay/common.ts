@@ -46,13 +46,13 @@ export const notifyStatusTagType = (status: number) => {
 }
 
 /** 退款状态标签颜色（对应 RefundStatusEnum：0处理中 1成功 2失败） */
-export const refundStatusTagType = (status: number) => {
+export const refundStatusTagType = (status?: number) => {
   const map: Record<number, 'success' | 'info' | 'warning' | 'danger'> = {
     0: 'warning', // 处理中
     1: 'success', // 成功
     2: 'danger' // 失败
   }
-  return map[status] || 'info'
+  return (status !== undefined ? map[status] : undefined) || 'info'
 }
 
 /** 退款审核状态标签颜色（对应 RefundAuditStatusEnum：0待审核 1通过 2驳回） */

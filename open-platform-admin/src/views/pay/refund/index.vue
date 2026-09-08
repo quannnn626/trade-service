@@ -2,6 +2,7 @@
 import { ContentWrap } from '@/components/ContentWrap'
 import { Search } from '@/components/Search'
 import { Table } from '@/components/Table'
+import { BaseButton } from '@/components/Button'
 import { useTable } from '@/hooks/web/useTable'
 import { useCrudSchemas } from '@/hooks/web/useCrudSchemas'
 import type { CrudSchema } from '@/hooks/web/useCrudSchemas'
@@ -11,6 +12,9 @@ import type { PageResult } from '@/api/pay/order/types'
 import { fmtAmount, refundAuditTagType, refundStatusTagType } from '../common'
 import { ElTag } from 'element-plus'
 import { reactive, ref, unref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const { push } = useRouter()
 
 defineOptions({
   name: 'PayRefundList'
@@ -231,6 +235,32 @@ const crudSchemas = reactive<CrudSchema[]>([
     form: { hidden: true },
     detail: { hidden: true },
     table: { hidden: true }
+  },
+  {
+    field: 'action',
+    label: '操作',
+    search: { hidden: true },
+    form: { hidden: true },
+    detail: { hidden: true },
+    table: {
+      width: 100,
+      align: 'center',
+      slots: {
+        default: (data: any) => {
+          const row = data.row as RefundItem
+          return (
+            <BaseButton
+              size="small"
+              type="primary"
+              link
+              onClick={() => push(`/pay/refund/${row.refundNo}`)}
+            >
+              详情
+            </BaseButton>
+          )
+        }
+      }
+    }
   }
 ])
 

@@ -55,3 +55,79 @@ export interface RefundPageParams {
   /** 结束时间（yyyy-MM-dd HH:mm:ss） */
   endTime?: string
 }
+
+/** 关联支付订单关键信息（对应 RefundDetailVO.PayOrderRef） */
+export interface RefundOrderRef {
+  /** 商户订单号 */
+  orderNo: string
+  /** 商品标题 */
+  subject: string
+  /** 订单金额（元） */
+  amount: number
+  /** 订单状态 code */
+  status: number
+  /** 订单状态名称 */
+  statusName: string
+}
+
+/** 退款订单详情（对应后端 RefundDetailVO） */
+export interface RefundDetail {
+  /** 退款单号 */
+  refundNo: string
+  /** 支付单号 */
+  paymentNo: string
+  /** 商户退款单号 */
+  merchantRefundNo: string
+  /** 商户编号 */
+  merchantNo: string
+  /** 商户名称 */
+  merchantName: string
+  /** 用户 ID */
+  userId: number
+  /** 用户名称 */
+  userName: string
+  /** 退款金额（元） */
+  refundAmount: number
+  /** 退款原因 */
+  refundReason: string | null
+  /** 退款类型 code（1-全额 2-部分） */
+  refundType: number
+  /** 退款类型名称 */
+  refundTypeName: string
+  /** 申请退款金额（元） */
+  applyAmount: number
+  /** 实际退款金额（元） */
+  actualAmount: number
+  /** 退还手续费（元） */
+  feeRefund: number
+  /** 退款渠道（1-原路退回） */
+  refundChannel: number
+  /** 退款状态 code */
+  status: number
+  /** 退款状态名称 */
+  statusName: string
+  /** 审核状态 code（0-待审核 1-通过 2-驳回） */
+  auditStatus: number
+  /** 审核状态名称 */
+  auditStatusName: string
+  /** 审核人 ID */
+  auditorId: number
+  /** 审核人名称 */
+  auditorName: string
+  /** 审核时间 */
+  auditTime: string | null
+  /** 退款失败原因 */
+  failReason: string | null
+  /** 退款回调地址 */
+  notifyUrl: string
+  /** 申请时间 */
+  applyTime: string | null
+  /** 完成时间 */
+  finishTime: string | null
+  /** 创建时间 */
+  createTime: string
+  /** 更新时间 */
+  updateTime: string
+  /** 关联支付订单 */
+  order?: RefundOrderRef | null
+}

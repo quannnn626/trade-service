@@ -130,6 +130,16 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
       },
       {
         // 详情页：从列表行进入，不进菜单
+        path: 'refund/:refundNo',
+        component: () => import('@/views/pay/refund/detail.vue'),
+        name: 'PayRefundDetail',
+        meta: {
+          title: '退款订单详情',
+          hidden: true
+        }
+      },
+      {
+        // 详情页：从列表行进入，不进菜单
         path: 'order/:paymentNo',
         component: () => import('@/views/pay/order/detail.vue'),
         name: 'PayOrderDetail',
