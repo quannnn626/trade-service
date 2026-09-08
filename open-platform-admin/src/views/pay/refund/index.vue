@@ -6,11 +6,11 @@ import { BaseButton } from '@/components/Button'
 import { useTable } from '@/hooks/web/useTable'
 import { useCrudSchemas } from '@/hooks/web/useCrudSchemas'
 import type { CrudSchema } from '@/hooks/web/useCrudSchemas'
-import { getRefundPageApi } from '@/api/refund'
+import { auditRefundApi, getRefundPageApi } from '@/api/refund'
 import type { RefundItem } from '@/api/refund/types'
 import type { PageResult } from '@/api/pay/order/types'
 import { fmtAmount, refundAuditTagType, refundStatusTagType } from '../common'
-import { ElTag } from 'element-plus'
+import { ElMessage, ElMessageBox, ElTag } from 'element-plus'
 import { reactive, ref, unref } from 'vue'
 import { useRouter } from 'vue-router'
 
@@ -243,20 +243,32 @@ const crudSchemas = reactive<CrudSchema[]>([
     form: { hidden: true },
     detail: { hidden: true },
     table: {
-      width: 100,
+      width: 180,
       align: 'center',
       slots: {
         default: (data: any) => {
           const row = data.row as RefundItem
           return (
-            <BaseButton
-              size="small"
-              type="primary"
-              link
-              onClick={() => push(`/pay/refund/${row.refundNo}`)}
-            >
-              详情
-            </BaseButton>
+            <>
+              <BaseButton
+                size="small"
+                type="primary"
+                link
+                onClick={() => push(`/pay/refund/${row.refundNo}`)}
+              >
+                详情
+              </BaseButton>
+              {row.auditStatus === 0 && (
+                <>
+                  <BaseButton size="small" type="success" link onClick={() => handleAudit(row, 1)}>
+                    通过
+                  </BaseButton>
+                  <BaseButton size="small" type="danger" link onClick={() => handleAudit(row, 2)}>
+                    驳回
+                  </BaseButton>
+                </>
+              )}
+            </>
           )
         }
       }
@@ -265,6 +277,37 @@ const crudSchemas = reactive<CrudSchema[]>([
 ])
 
 const { allSchemas } = useCrudSchemas(crudSchemas)
+
+// 退款审核：通过=1 驳回=2（驳回必填备注作失败原因；服务端有防重复审核，直接提交即可）
+const handleAudit = async (row: RefundItem, result: 1 | 2) => {
+  try {
+    let auditRemark = ''
+    if (result === 2) {
+      const { value } = await ElMessageBox.prompt(`确认驳回退款单 ${row.refundNo}？`, '驳回退款', {
+        confirmButtonText: '确认驳回',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请输入驳回原因（必填）',
+        inputValidator: (v: string) => (v && v.trim() ? true : '驳回原因不能为空')
+      })
+      auditRemark = value.trim()
+    } else {
+      await ElMessageBox.confirm(
+        `确认通过退款单 ${row.refundNo}？通过后将执行退款，请务必核实。`,
+        '退款审核',
+        {
+          confirmButtonText: '确认通过',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }
+      )
+    }
+    await auditRefundApi({ refundNo: row.refundNo, auditResult: result, auditRemark })
+    ElMessage.success(result === 1 ? '审核通过，退款已执行' : '已驳回')
+    getList()
+  } catch {
+    // 用户取消或接口报错（报错已由全局拦截器提示）
+  }
+}
 </script>
 
 <template>

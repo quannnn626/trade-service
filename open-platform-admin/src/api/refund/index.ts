@@ -17,3 +17,14 @@ export const getRefundPageApi = (
 export const getRefundDetailApi = (refundNo: string): Promise<IResponse<RefundDetail>> => {
   return request.get({ url: `/api/refund/${refundNo}` })
 }
+
+/**
+ * 退款审核（auditResult 1-通过 2-驳回；驳回时 auditRemark 必填，作为失败原因）
+ */
+export const auditRefundApi = (data: {
+  refundNo: string
+  auditResult: 1 | 2
+  auditRemark?: string
+}): Promise<IResponse> => {
+  return request.post({ url: '/api/refund/audit', data })
+}
