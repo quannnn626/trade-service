@@ -149,6 +149,27 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         }
       }
     ]
+  },
+  {
+    path: '/account',
+    component: Layout,
+    redirect: '/account/user',
+    name: 'AccountManage',
+    meta: {
+      title: '资金管理',
+      icon: 'vi-ep:wallet'
+    },
+    children: [
+      {
+        path: 'user',
+        component: () => import('@/views/pay/account/user.vue'),
+        name: 'UserAccountList',
+        meta: {
+          title: '用户账户',
+          noCache: true
+        }
+      }
+    ]
   }
 ]
 

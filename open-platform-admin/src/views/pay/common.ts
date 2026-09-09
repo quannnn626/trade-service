@@ -64,3 +64,11 @@ export const refundAuditTagType = (status?: number) => {
   }
   return (status !== undefined ? map[status] : undefined) || 'info'
 }
+
+/** 流水金额显示：收入带 + 号、支出为负（空值显示 -） */
+export const fmtSignedAmount = (value?: number | null) =>
+  value === null || value === undefined ? '-' : (value > 0 ? '+' : '') + fmtAmount(value)
+
+/** 流水金额颜色类：支出红 / 收入绿（配合样式 .amount-out/.amount-in 使用） */
+export const amountColorClass = (value?: number | null) =>
+  value !== null && value !== undefined && value < 0 ? 'amount-out' : 'amount-in'
