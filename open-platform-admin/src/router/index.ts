@@ -170,6 +170,27 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         }
       }
     ]
+  },
+  {
+    path: '/merchant',
+    component: Layout,
+    redirect: '/merchant/list',
+    name: 'MerchantManage',
+    meta: {
+      title: '商户管理',
+      icon: 'vi-ep:office-building'
+    },
+    children: [
+      {
+        path: 'list',
+        component: () => import('@/views/pay/merchant/list.vue'),
+        name: 'MerchantList',
+        meta: {
+          title: '商户列表',
+          noCache: true
+        }
+      }
+    ]
   }
 ]
 

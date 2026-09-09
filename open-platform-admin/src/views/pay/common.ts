@@ -72,3 +72,26 @@ export const fmtSignedAmount = (value?: number | null) =>
 /** 流水金额颜色类：支出红 / 收入绿（配合样式 .amount-out/.amount-in 使用） */
 export const amountColorClass = (value?: number | null) =>
   value !== null && value !== undefined && value < 0 ? 'amount-out' : 'amount-in'
+
+/** 费率百分比显示：0.0060 → 0.6%（空值显示 -） */
+export const fmtRate = (value?: number | null) =>
+  value === null || value === undefined ? '-' : `${Number((Number(value) * 100).toFixed(4))}%`
+
+/** 商户状态标签颜色（对应 MerchantStatusEnum：0禁用 1启用） */
+export const merchantStatusTagType = (status?: number) => {
+  const map: Record<number, 'success' | 'info' | 'warning'> = {
+    0: 'warning', // 禁用
+    1: 'success' // 启用
+  }
+  return (status !== undefined ? map[status] : undefined) || 'info'
+}
+
+/** 商户审核状态标签颜色（0待审核 1通过 2驳回） */
+export const merchantAuditTagType = (status?: number) => {
+  const map: Record<number, 'success' | 'info' | 'warning' | 'danger'> = {
+    0: 'warning', // 待审核
+    1: 'success', // 通过
+    2: 'danger' // 驳回
+  }
+  return (status !== undefined ? map[status] : undefined) || 'info'
+}
