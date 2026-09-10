@@ -2,15 +2,24 @@
 import { ContentWrap } from '@/components/ContentWrap'
 import { Search } from '@/components/Search'
 import { Table } from '@/components/Table'
+import { BaseButton } from '@/components/Button'
 import { useTable } from '@/hooks/web/useTable'
 import { useCrudSchemas } from '@/hooks/web/useCrudSchemas'
 import type { CrudSchema } from '@/hooks/web/useCrudSchemas'
 import { getMerchantPageApi } from '@/api/merchant'
 import type { MerchantItem } from '@/api/merchant/types'
 import type { PageResult } from '@/api/pay/order/types'
-import { fmtRate, merchantAuditTagType, merchantStatusTagType } from '../common'
+import {
+  fmtRate,
+  merchantAuditStatusText,
+  merchantAuditTagType,
+  merchantStatusTagType
+} from '../common'
 import { ElTag } from 'element-plus'
 import { reactive, ref, unref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const { push } = useRouter()
 
 defineOptions({
   name: 'MerchantList'
@@ -170,7 +179,7 @@ const crudSchemas = reactive<CrudSchema[]>([
       slots: {
         default: (data: any) => (
           <ElTag type={merchantAuditTagType(data.auditStatus)} size="small">
-            {auditStatusText(data.auditStatus)}
+            {merchantAuditStatusText(data.auditStatus)}
           </ElTag>
         )
       }
@@ -181,20 +190,36 @@ const crudSchemas = reactive<CrudSchema[]>([
     label: '创建时间',
     minWidth: 170,
     search: { hidden: true }
+  },
+  {
+    field: 'action',
+    label: '操作',
+    search: { hidden: true },
+    form: { hidden: true },
+    detail: { hidden: true },
+    table: {
+      width: 90,
+      align: 'center',
+      slots: {
+        default: (data: any) => {
+          const row = data.row as MerchantItem
+          return (
+            <BaseButton
+              size="small"
+              type="primary"
+              link
+              onClick={() => push(`/merchant/detail/${row.merchantNo}`)}
+            >
+              详情
+            </BaseButton>
+          )
+        }
+      }
+    }
   }
 ])
 
 const { allSchemas } = useCrudSchemas(crudSchemas)
-
-// 审核状态文案（后端未返回 statusName，按值域映射）
-const auditStatusText = (v: number) => {
-  const map: Record<number, string> = {
-    0: '待审核',
-    1: '通过',
-    2: '驳回'
-  }
-  return map[v] || '-'
-}
 </script>
 
 <template>

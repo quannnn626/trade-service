@@ -198,6 +198,16 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
           title: '商户列表',
           noCache: true
         }
+      },
+      {
+        // 详情页：从列表行进入，不进菜单
+        path: 'detail/:merchantNo',
+        component: () => import('@/views/pay/merchant/detail.vue'),
+        name: 'MerchantDetail',
+        meta: {
+          title: '商户详情',
+          hidden: true
+        }
       }
     ]
   }

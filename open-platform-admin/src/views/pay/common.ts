@@ -114,3 +114,24 @@ export const merchantAuditTagType = (status?: number) => {
   }
   return (status !== undefined ? map[status] : undefined) || 'info'
 }
+
+/** 商户审核状态文案（0待审核 1通过 2驳回） */
+export const merchantAuditStatusText = (status?: number) => {
+  const map: Record<number, string> = {
+    0: '待审核',
+    1: '通过',
+    2: '驳回'
+  }
+  return (status !== undefined ? map[status] : undefined) || '-'
+}
+
+/** 商户结算方式文案（1-T+1 2-T+0 3-周结 4-月结） */
+export const settleTypeText = (type?: number | null) => {
+  const map: Record<number, string> = {
+    1: 'T+1',
+    2: 'T+0',
+    3: '周结',
+    4: '月结'
+  }
+  return (type !== null && type !== undefined ? map[type] : undefined) || '-'
+}
