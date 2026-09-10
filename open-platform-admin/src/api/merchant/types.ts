@@ -78,6 +78,24 @@ export interface MerchantDetail {
   secretVersion: number
 }
 
+/** 商户审核参数（auditStatus 1-通过 2-驳回；驳回时 auditRemark 必填，作驳回原因） */
+export interface MerchantAuditParams {
+  merchantNo: string
+  auditStatus: 1 | 2
+  auditRemark?: string
+}
+
+/** 商户审核返回（通过时返回新建的资金账户编号） */
+export interface MerchantAuditResult {
+  merchantNo: string
+  /** 审核结果 1通过 2驳回 */
+  auditStatus: number
+  /** 商户状态 0禁用 1启用 */
+  status: number
+  accountNo: string | null
+  auditRemark: string | null
+}
+
 /** 密钥轮换返回（appSecret 仅此一次返回，注意保存） */
 export interface MerchantSecret {
   merchantNo: string

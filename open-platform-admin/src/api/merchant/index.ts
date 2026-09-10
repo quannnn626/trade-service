@@ -1,5 +1,12 @@
 import request from '@/axios'
-import type { MerchantDetail, MerchantItem, MerchantPageParams, MerchantSecret } from './types'
+import type {
+  MerchantAuditParams,
+  MerchantAuditResult,
+  MerchantDetail,
+  MerchantItem,
+  MerchantPageParams,
+  MerchantSecret
+} from './types'
 import type { PageResult } from '@/api/pay/order/types'
 
 /**
@@ -10,6 +17,16 @@ export const getMerchantPageApi = (
   params: MerchantPageParams
 ): Promise<IResponse<PageResult<MerchantItem>>> => {
   return request.get({ url: '/api/merchant/list', params })
+}
+
+/**
+ * 商户审核（通过=启用商户+创建资金账户；驳回=须填原因，商户保持禁用）
+ * 服务端已防重复审核，待审列表天然只含未审核商户
+ */
+export const auditMerchantApi = (
+  data: MerchantAuditParams
+): Promise<IResponse<MerchantAuditResult>> => {
+  return request.post({ url: '/api/merchant/audit', data })
 }
 
 /** 商户详情（含资金账户、密钥版本） */

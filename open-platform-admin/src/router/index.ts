@@ -200,6 +200,15 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         }
       },
       {
+        path: 'audit',
+        component: () => import('@/views/pay/merchant/audit.vue'),
+        name: 'MerchantAudit',
+        meta: {
+          title: '商户审核',
+          noCache: true
+        }
+      },
+      {
         // 详情页：从列表行进入，不进菜单
         path: 'detail/:merchantNo',
         component: () => import('@/views/pay/merchant/detail.vue'),
