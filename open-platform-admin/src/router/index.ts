@@ -168,6 +168,15 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
           title: '用户账户',
           noCache: true
         }
+      },
+      {
+        path: 'flow',
+        component: () => import('@/views/pay/account/flow.vue'),
+        name: 'AccountFlowList',
+        meta: {
+          title: '资金流水',
+          noCache: true
+        }
       }
     ]
   },

@@ -77,6 +77,25 @@ export const amountColorClass = (value?: number | null) =>
 export const fmtRate = (value?: number | null) =>
   value === null || value === undefined ? '-' : `${Number((Number(value) * 100).toFixed(4))}%`
 
+/** 资金流水类型筛选选项（对应 AccountFlowTypeEnum 1-9） */
+export const flowTypeOptions = [
+  { value: 1, label: '支出' },
+  { value: 2, label: '收入' },
+  { value: 3, label: '手续费' },
+  { value: 4, label: '退款支出' },
+  { value: 5, label: '退款收入' },
+  { value: 6, label: '充值' },
+  { value: 7, label: '冻结' },
+  { value: 8, label: '解冻' },
+  { value: 9, label: '调整' }
+]
+
+/** 资金账户类型选项（1-用户 2-商户） */
+export const accountTypeOptions = [
+  { value: 1, label: '用户账户' },
+  { value: 2, label: '商户账户' }
+]
+
 /** 商户状态标签颜色（对应 MerchantStatusEnum：0禁用 1启用） */
 export const merchantStatusTagType = (status?: number) => {
   const map: Record<number, 'success' | 'info' | 'warning'> = {

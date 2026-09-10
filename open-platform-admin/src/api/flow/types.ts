@@ -30,10 +30,12 @@ export interface FlowItem {
 export interface FlowQueryParams {
   page: number
   pageSize: number
-  /** 流水类型 */
+  /** 流水类型（1支出 2收入 3手续费 4退款支出 5退款收入 6充值 7冻结 8解冻 9调整） */
   flowType?: number
   /** 开始时间（yyyy-MM-dd HH:mm:ss） */
   startTime?: string
   /** 结束时间（yyyy-MM-dd HH:mm:ss） */
   endTime?: string
+  /** 账户类型（1用户 2商户；仅全局列表接口支持，按账户号查询时接口不含此参数） */
+  accountType?: number
 }
