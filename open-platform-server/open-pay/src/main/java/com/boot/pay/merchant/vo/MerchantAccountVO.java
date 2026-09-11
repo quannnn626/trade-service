@@ -40,8 +40,11 @@ public class MerchantAccountVO {
     /** 累计手续费（平台抽成） */
     private BigDecimal totalFee;
 
-    /** 账户状态（1正常） */
+    /** 账户状态（0冻结 1正常） */
     private Integer status;
+
+    /** 账户状态文案（0冻结 1正常） */
+    private String statusName;
 
     /** 创建时间 */
     private String createTime;

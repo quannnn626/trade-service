@@ -9,6 +9,8 @@ import com.boot.pay.account.dto.SetPayPasswordDTO;
 import com.boot.pay.account.dto.UnfreezeAccountDTO;
 import com.boot.pay.account.vo.AccountListVO;
 import com.boot.pay.account.vo.AccountVO;
+import com.boot.pay.merchant.vo.MerchantAccountVO;
+import com.boot.pay.service.PayMerchantAccountService;
 import com.boot.pay.service.PayUserAccountService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -25,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
 * @author quannnn
-* @description 用户账户接口
+* @description 账户接口（用户账户 / 商户账户）
 * @createDate 2026-08-13
 */
 @RestController
@@ -34,6 +36,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class AccountController {
 
     private final PayUserAccountService payUserAccountService;
+
+    private final PayMerchantAccountService payMerchantAccountService;
 
     /**
      * 当前登录用户查询自己的账户
@@ -64,6 +68,21 @@ public class AccountController {
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String phone) {
         return Result.success(payUserAccountService.listPage(page, pageSize, accountNo, username, phone));
+    }
+
+    /**
+     * 商户账户分页列表（运营后台）
+     * 筛选：账户号、商户号/商户名（模糊，后两者查 pay_merchant 后转 merchantId）
+     */
+    @GetMapping("/merchant/list")
+    public Result<IPage<MerchantAccountVO>> merchantList(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer pageSize,
+            @RequestParam(required = false) String accountNo,
+            @RequestParam(required = false) String merchantNo,
+            @RequestParam(required = false) String merchantName) {
+        return Result.success(
+                payMerchantAccountService.listPage(page, pageSize, accountNo, merchantNo, merchantName));
     }
 
     /**
