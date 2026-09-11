@@ -17,6 +17,7 @@ import {
   refundStatusTagType,
   statusTagType
 } from '../common'
+import { ElPagination, ElTabPane, ElTable, ElTableColumn, ElTabs, ElTag } from 'element-plus'
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 

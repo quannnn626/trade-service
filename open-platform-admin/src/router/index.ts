@@ -200,6 +200,15 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         }
       },
       {
+        path: 'create',
+        component: () => import('@/views/pay/merchant/create.vue'),
+        name: 'MerchantCreate',
+        meta: {
+          title: '新建商户',
+          noCache: true
+        }
+      },
+      {
         path: 'audit',
         component: () => import('@/views/pay/merchant/audit.vue'),
         name: 'MerchantAudit',

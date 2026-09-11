@@ -2,9 +2,7 @@
   <div class="home-container">
     <el-card class="welcome-card">
       <div class="welcome-content">
-        <el-icon :size="64" color="var(--el-color-primary)">
-          <svg-icon icon="vi-ant-design:dashboard-filled" />
-        </el-icon>
+        <Icon icon="vi-ant-design:dashboard-filled" :size="64" color="var(--el-color-primary)" />
         <h1 class="welcome-title">欢迎使用开放服务平台</h1>
         <p class="welcome-desc">Open Platform — 为商户提供支付、账户、资金等综合能力</p>
         <el-divider />
@@ -12,21 +10,21 @@
           <el-col :span="8">
             <el-statistic title="支付订单" :value="1024">
               <template #prefix>
-                <el-icon><svg-icon icon="vi-ep:money" /></el-icon>
+                <Icon icon="vi-ep:money" />
               </template>
             </el-statistic>
           </el-col>
           <el-col :span="8">
             <el-statistic title="接入商户" :value="86">
               <template #prefix>
-                <el-icon><svg-icon icon="vi-ep:office-building" /></el-icon>
+                <Icon icon="vi-ep:office-building" />
               </template>
             </el-statistic>
           </el-col>
           <el-col :span="8">
             <el-statistic title="平台用户" :value="5680">
               <template #prefix>
-                <el-icon><svg-icon icon="vi-ep:user-filled" /></el-icon>
+                <Icon icon="vi-ep:user-filled" />
               </template>
             </el-statistic>
           </el-col>
@@ -37,6 +35,8 @@
 </template>
 
 <script setup lang="ts">
+import { ElCard, ElCol, ElDivider, ElRow, ElStatistic } from 'element-plus'
+
 // 首页 — 后续根据需要扩展
 </script>
 

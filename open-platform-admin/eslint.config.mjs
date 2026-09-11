@@ -77,6 +77,12 @@ export default tseslint.config({
     ],
     'vue/multi-word-component-names': 0,
     'vue/no-v-html': 0,
-    'vue/require-toggle-inside-transition': 0
+    'vue/require-toggle-inside-transition': 0,
+    // Element Plus 未全局注册，模板里用到的组件必须显式 import，否则运行时解析不到。
+    // 忽略项为 setupGlobCom / vue-router 全局注册的组件。
+    'vue/no-undef-components': [
+      'error',
+      { ignorePatterns: ['Icon', 'BaseButton', 'Permission', 'RouterView', 'RouterLink'] }
+    ]
   }
 })

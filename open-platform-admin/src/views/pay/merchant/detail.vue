@@ -18,7 +18,7 @@ import {
   merchantStatusTagType,
   settleTypeText
 } from '../common'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElButton, ElMessage, ElMessageBox, ElTag } from 'element-plus'
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 

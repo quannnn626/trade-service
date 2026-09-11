@@ -7,6 +7,7 @@ import { getFlowListByPaymentApi } from '@/api/flow'
 import type { FlowItem } from '@/api/flow/types'
 import type { PageResult } from '@/api/pay/order/types'
 import { fmtAmount, fmtTime, refundStatusTagType } from '../common'
+import { ElPagination, ElTabPane, ElTable, ElTableColumn, ElTabs, ElTag } from 'element-plus'
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 

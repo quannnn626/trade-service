@@ -1,5 +1,7 @@
 import request from '@/axios'
 import type {
+  MerchantApplyParams,
+  MerchantApplyResult,
   MerchantAuditParams,
   MerchantAuditResult,
   MerchantDetail,
@@ -17,6 +19,16 @@ export const getMerchantPageApi = (
   params: MerchantPageParams
 ): Promise<IResponse<PageResult<MerchantItem>>> => {
   return request.get({ url: '/api/merchant/list', params })
+}
+
+/**
+ * 商户入驻申请（运营后台「新建商户」与商城自助入驻共用此接口）
+ * 落库即为待审 + 禁用，须审核通过后才能交易；返回的 appSecret 仅此一次
+ */
+export const applyMerchantApi = (
+  data: MerchantApplyParams
+): Promise<IResponse<MerchantApplyResult>> => {
+  return request.post({ url: '/api/merchant/apply', data })
 }
 
 /**

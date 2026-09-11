@@ -78,6 +78,42 @@ export interface MerchantDetail {
   secretVersion: number
 }
 
+/**
+ * 商户入驻申请参数（对应后端 MerchantApplyDTO）
+ * settleFeeRate 传小数：0.0060 表示 0.6%
+ * whiteIpList 传 JSON 数组字符串：["192.168.1.1"]
+ */
+export interface MerchantApplyParams {
+  merchantName: string
+  companyName: string
+  businessLicense: string
+  contactName: string
+  contactPhone: string
+  contactEmail: string
+  /** 结算方式 1-T+1 2-T+0 3-周结 4-月结，不传默认 1 */
+  settleType?: number
+  settleFeeRate: number
+  dailyLimit: number
+  singleLimit: number
+  whiteIpList?: string
+  notifyUrl?: string
+  /** 商户类型，值域后端未枚举，不传默认 1 */
+  merchantType?: number
+  remark?: string
+}
+
+/** 商户入驻申请返回（appKey/appSecret 仅此一次返回明文） */
+export interface MerchantApplyResult {
+  merchantNo: string
+  merchantName: string
+  appKey: string
+  appSecret: string
+  /** 审核状态 0待审 1通过 2驳回，入驻后固定 0 */
+  auditStatus: number
+  settleFeeRate: number
+  tip: string
+}
+
 /** 商户审核参数（auditStatus 1-通过 2-驳回；驳回时 auditRemark 必填，作驳回原因） */
 export interface MerchantAuditParams {
   merchantNo: string
