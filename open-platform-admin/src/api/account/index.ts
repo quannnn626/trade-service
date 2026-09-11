@@ -1,5 +1,11 @@
 import request from '@/axios'
-import type { AccountItem, AccountPageParams, AdjustAccountParams } from './types'
+import type {
+  AccountItem,
+  AccountPageParams,
+  AdjustAccountParams,
+  MerchantAccountItem,
+  MerchantAccountPageParams
+} from './types'
 import type { PageResult } from '@/api/pay/order/types'
 
 /**
@@ -10,6 +16,16 @@ export const getAccountPageApi = (
   params: AccountPageParams
 ): Promise<IResponse<PageResult<AccountItem>>> => {
   return request.get({ url: '/api/account/list', params })
+}
+
+/**
+ * 商户账户分页列表（运营后台）
+ * 筛选：账户号/商户号/商户名称（均模糊）
+ */
+export const getMerchantAccountPageApi = (
+  params: MerchantAccountPageParams
+): Promise<IResponse<PageResult<MerchantAccountItem>>> => {
+  return request.get({ url: '/api/account/merchant/list', params })
 }
 
 /** 启用账户（状态置为正常，仅冻结账户可启用） */

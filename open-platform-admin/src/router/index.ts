@@ -170,6 +170,15 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         }
       },
       {
+        path: 'merchant',
+        component: () => import('@/views/pay/account/merchant.vue'),
+        name: 'MerchantAccountList',
+        meta: {
+          title: '商户账户',
+          noCache: true
+        }
+      },
+      {
         path: 'flow',
         component: () => import('@/views/pay/account/flow.vue'),
         name: 'AccountFlowList',

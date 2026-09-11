@@ -40,6 +40,46 @@ export interface AccountPageParams {
   phone?: string
 }
 
+/** 商户账户列表项（对应后端 MerchantAccountVO） */
+export interface MerchantAccountItem {
+  /** 商户号（关联 pay_merchant 回填） */
+  merchantNo: string
+  /** 商户名称 */
+  merchantName: string
+  /** 资金账户编号（MA 开头） */
+  accountNo: string
+  /** 账户余额（元） */
+  balance: number
+  /** 冻结金额（元） */
+  frozenAmount: number
+  /** 可用余额（balance - frozenAmount，元） */
+  availableBalance: number
+  /** 累计收入（用户付款，元） */
+  totalIncome: number
+  /** 累计支出（退款，元） */
+  totalExpense: number
+  /** 累计手续费（平台抽成，元） */
+  totalFee: number
+  /** 账户状态 code（1正常 0冻结） */
+  status: number
+  /** 账户状态名称 */
+  statusName: string
+  /** 创建时间 */
+  createTime: string
+}
+
+/** 商户账户分页查询参数 */
+export interface MerchantAccountPageParams {
+  page: number
+  pageSize: number
+  /** 账户号（模糊） */
+  accountNo?: string
+  /** 商户号（模糊） */
+  merchantNo?: string
+  /** 商户名称（模糊） */
+  merchantName?: string
+}
+
 /** 超管调账参数（amount 正数加款、负数扣款，不能为 0） */
 export interface AdjustAccountParams {
   /** 账户类型 1-用户 2-商户 */
