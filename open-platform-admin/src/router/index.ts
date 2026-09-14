@@ -186,6 +186,15 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
           title: '资金流水',
           noCache: true
         }
+      },
+      {
+        path: 'report',
+        component: () => import('@/views/pay/account/report.vue'),
+        name: 'DailySummaryReport',
+        meta: {
+          title: '日汇总报表',
+          noCache: true
+        }
       }
     ]
   },

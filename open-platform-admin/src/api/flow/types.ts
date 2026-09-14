@@ -26,6 +26,28 @@ export interface FlowItem {
   createTime: string
 }
 
+/** 日汇总明细（按流水类型分组） */
+export interface DailySummaryItem {
+  /** 流水类型 code（1支出 2收入 3手续费 4退款支出 5退款收入 6充值 7冻结 8解冻 9调整） */
+  flowType: number
+  /** 流水类型名称 */
+  flowTypeName: string
+  /** 该类型笔数 */
+  count: number
+  /** 该类型金额合计（含符号，支出为负） */
+  amount: number
+}
+
+/** 日汇总报表（对应后端 DailySummaryVO） */
+export interface DailySummaryResult {
+  /** 汇总日期（yyyy-MM-dd） */
+  date: string
+  /** 总笔数 */
+  totalCount: number
+  /** 按流水类型汇总明细（无记录的类型不返回） */
+  items: DailySummaryItem[]
+}
+
 /** 资金流水查询参数 */
 export interface FlowQueryParams {
   page: number

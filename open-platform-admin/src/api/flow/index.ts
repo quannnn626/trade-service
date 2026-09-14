@@ -1,5 +1,5 @@
 import request from '@/axios'
-import type { FlowItem, FlowQueryParams } from './types'
+import type { DailySummaryResult, FlowItem, FlowQueryParams } from './types'
 import type { PageResult } from '@/api/pay/order/types'
 
 /**
@@ -20,6 +20,13 @@ export const getFlowListByPaymentApi = (
   params: FlowQueryParams
 ): Promise<IResponse<PageResult<FlowItem>>> => {
   return request.get({ url: `/api/flow/list-by-payment/${paymentNo}`, params })
+}
+
+/**
+ * 日汇总报表：按流水类型汇总指定日期（date 为空时后端取今天）
+ */
+export const getDailySummaryApi = (date?: string): Promise<IResponse<DailySummaryResult>> => {
+  return request.get({ url: '/api/flow/daily-summary', params: { date } })
 }
 
 /**
