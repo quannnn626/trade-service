@@ -125,6 +125,20 @@ export const merchantAuditStatusText = (status?: number) => {
   return (status !== undefined ? map[status] : undefined) || '-'
 }
 
+/** 接口日志验签结果选项（对应后端 SignResultEnum：0通过 1失败） */
+export const signResultOptions = [
+  { value: 0, label: '通过' },
+  { value: 1, label: '失败' }
+]
+
+/** 耗时分级标签色：>1s 危险、>500ms 警示、其余正常 */
+export const costTagType = (costTime?: number | null) => {
+  if (costTime === null || costTime === undefined) return 'info'
+  if (costTime > 1000) return 'danger'
+  if (costTime > 500) return 'warning'
+  return 'success'
+}
+
 /** 商户结算方式文案（1-T+1 2-T+0 3-周结 4-月结） */
 export const settleTypeText = (type?: number | null) => {
   const map: Record<number, string> = {

@@ -246,6 +246,27 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
         }
       }
     ]
+  },
+  {
+    path: '/system',
+    component: Layout,
+    redirect: '/system/api-log',
+    name: 'SystemManage',
+    meta: {
+      title: '系统管理',
+      icon: 'vi-ep:setting'
+    },
+    children: [
+      {
+        path: 'api-log',
+        component: () => import('@/views/pay/system/api-log.vue'),
+        name: 'ApiLogList',
+        meta: {
+          title: '接口日志',
+          noCache: true
+        }
+      }
+    ]
   }
 ]
 
