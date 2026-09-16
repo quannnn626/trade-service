@@ -265,6 +265,15 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
           title: '接口日志',
           noCache: true
         }
+      },
+      {
+        path: 'notify',
+        component: () => import('@/views/pay/system/notify.vue'),
+        name: 'NotifyList',
+        meta: {
+          title: '回调通知管理',
+          noCache: true
+        }
       }
     ]
   }

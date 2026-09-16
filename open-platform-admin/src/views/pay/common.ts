@@ -125,6 +125,20 @@ export const merchantAuditStatusText = (status?: number) => {
   return (status !== undefined ? map[status] : undefined) || '-'
 }
 
+/** 回调通知类型选项（对应后端 NotifyTypeEnum：1支付成功 2退款成功 3退款失败） */
+export const notifyTypeOptions = [
+  { value: 1, label: '支付成功' },
+  { value: 2, label: '退款成功' },
+  { value: 3, label: '退款失败' }
+]
+
+/** 回调通知状态选项（对应后端 NotifyStatusEnum：0待通知 1成功 2失败达上限） */
+export const notifyStatusOptions = [
+  { value: 0, label: '待通知' },
+  { value: 1, label: '成功' },
+  { value: 2, label: '失败（达上限）' }
+]
+
 /** 接口日志验签结果选项（对应后端 SignResultEnum：0通过 1失败） */
 export const signResultOptions = [
   { value: 0, label: '通过' },
