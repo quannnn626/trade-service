@@ -274,6 +274,15 @@ export const asyncRouterMap: AppRouteRecordRaw[] = [
           title: '回调通知管理',
           noCache: true
         }
+      },
+      {
+        path: 'channel',
+        component: () => import('@/views/pay/system/channel.vue'),
+        name: 'ChannelList',
+        meta: {
+          title: '支付渠道管理',
+          noCache: true
+        }
       }
     ]
   }
