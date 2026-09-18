@@ -42,9 +42,19 @@ export interface DailySummaryItem {
 export interface DailySummaryResult {
   /** 汇总日期（yyyy-MM-dd） */
   date: string
-  /** 总笔数 */
-  totalCount: number
-  /** 按流水类型汇总明细（无记录的类型不返回） */
+  /** 支付成功笔数（订单表口径，按支付时间归日） */
+  payCount: number
+  /** 交易额合计 = Σ订单金额（用户实付，未扣手续费） */
+  tradeAmount: number
+  /** 手续费合计 = Σ订单手续费（手续费只记在订单表 fee_amount） */
+  feeAmount: number
+  /** 商户到账合计 = Σ结算金额（= 交易额 - 手续费） */
+  settleAmount: number
+  /** 退款成功笔数（退款单表口径，按退款完成时间归日） */
+  refundCount: number
+  /** 退款金额合计 = Σ实际退款金额 */
+  refundAmount: number
+  /** 按流水类型汇总明细（资金流水口径，无记录的类型不返回） */
   items: DailySummaryItem[]
 }
 

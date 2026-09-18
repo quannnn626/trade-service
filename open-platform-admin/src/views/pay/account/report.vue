@@ -51,33 +51,39 @@ const backToToday = () => {
 /** 不允许选未来日期：当天之后的流水不存在 */
 const disabledFuture = (date: Date) => date.getTime() > Date.now()
 
-// 后端只返回有记录的类型，这里按 9 种类型补零，保证每天的表格结构一致
+/** 手续费流水类型（AccountFlowTypeEnum.FEE），流水表中不存在该类型记录，表格需排除 */
+const FEE_FLOW_TYPE = 3
+
+// 后端只返回有记录的类型，这里按流水类型补零，保证每天的表格结构一致
 const itemMap = computed(() => {
   const map = new Map<number, DailySummaryItem>()
   summary.value?.items?.forEach((item) => map.set(item.flowType, item))
   return map
 })
 
+// 手续费不产生余额变动（商户按「交易额 - 手续费」净额入账），流水表永远没有这一行，
+// 列出只会是恒 0.00，与上方卡片的真实手续费同屏矛盾，故本地过滤掉
 const rows = computed(() =>
-  flowTypeOptions.map((option) => {
-    const item = itemMap.value.get(option.value)
-    return {
-      flowType: option.value,
-      flowTypeName: item?.flowTypeName || option.label,
-      count: item?.count || 0,
-      amount: Number(item?.amount || 0)
-    }
-  })
+  flowTypeOptions
+    .filter((option) => option.value !== FEE_FLOW_TYPE)
+    .map((option) => {
+      const item = itemMap.value.get(option.value)
+      return {
+        flowType: option.value,
+        flowTypeName: item?.flowTypeName || option.label,
+        count: item?.count || 0,
+        amount: Number(item?.amount || 0)
+      }
+    })
 )
 
-const amountOf = (flowType: number) => Math.abs(Number(itemMap.value.get(flowType)?.amount || 0))
-
-const totalCount = computed(() => summary.value?.totalCount || 0)
-// 口径说明：接口按流水表汇总，收入=商户收款到账（已扣手续费）、支出=用户付款
-// 手续费取流水类型 3，但支付流程目前不写该类型流水，所以恒为 0（见待修复问题清单）
-const incomeAmount = computed(() => amountOf(2))
-const feeAmount = computed(() => amountOf(3))
-const refundAmount = computed(() => amountOf(4))
+// 卡片是交易/退款口径（订单表 + 退款单表），下方表格是流水口径，两者不是同一批数据
+const payCount = computed(() => summary.value?.payCount || 0)
+const tradeAmount = computed(() => Number(summary.value?.tradeAmount || 0))
+const feeAmount = computed(() => Number(summary.value?.feeAmount || 0))
+const settleAmount = computed(() => Number(summary.value?.settleAmount || 0))
+const refundCount = computed(() => summary.value?.refundCount || 0)
+const refundAmount = computed(() => Number(summary.value?.refundAmount || 0))
 </script>
 
 <template>
@@ -99,19 +105,19 @@ const refundAmount = computed(() => amountOf(4))
     </div>
 
     <ElRow :gutter="16" class="kpi-row" v-loading="loading">
-      <ElCol :span="6">
+      <ElCol :sm="12" :md="8" :lg="4">
         <el-card shadow="never">
-          <el-statistic title="流水总笔数" :value="totalCount">
+          <el-statistic title="支付成功笔数" :value="payCount">
             <template #prefix>
-              <Icon icon="vi-ep:document" />
+              <Icon icon="vi-ep:document-checked" />
             </template>
             <template #suffix>笔</template>
           </el-statistic>
         </el-card>
       </ElCol>
-      <ElCol :span="6">
+      <ElCol :sm="12" :md="8" :lg="4">
         <el-card shadow="never">
-          <el-statistic title="收款金额（商户到账）" :value="incomeAmount" :precision="2">
+          <el-statistic title="交易额" :value="tradeAmount" :precision="2">
             <template #prefix>
               <Icon icon="vi-ep:money" />
             </template>
@@ -119,7 +125,7 @@ const refundAmount = computed(() => amountOf(4))
           </el-statistic>
         </el-card>
       </ElCol>
-      <ElCol :span="6">
+      <ElCol :sm="12" :md="8" :lg="4">
         <el-card shadow="never">
           <el-statistic title="手续费" :value="feeAmount" :precision="2">
             <template #prefix>
@@ -129,11 +135,31 @@ const refundAmount = computed(() => amountOf(4))
           </el-statistic>
         </el-card>
       </ElCol>
-      <ElCol :span="6">
+      <ElCol :sm="12" :md="8" :lg="4">
+        <el-card shadow="never">
+          <el-statistic title="商户到账" :value="settleAmount" :precision="2">
+            <template #prefix>
+              <Icon icon="vi-ep:wallet" />
+            </template>
+            <template #suffix>元</template>
+          </el-statistic>
+        </el-card>
+      </ElCol>
+      <ElCol :sm="12" :md="8" :lg="4">
+        <el-card shadow="never">
+          <el-statistic title="退款成功笔数" :value="refundCount">
+            <template #prefix>
+              <Icon icon="vi-ep:refresh-left" />
+            </template>
+            <template #suffix>笔</template>
+          </el-statistic>
+        </el-card>
+      </ElCol>
+      <ElCol :sm="12" :md="8" :lg="4">
         <el-card shadow="never">
           <el-statistic title="退款金额" :value="refundAmount" :precision="2">
             <template #prefix>
-              <Icon icon="vi-ep:refresh-left" />
+              <Icon icon="vi-ep:credit-card" />
             </template>
             <template #suffix>元</template>
           </el-statistic>
@@ -143,7 +169,7 @@ const refundAmount = computed(() => amountOf(4))
 
     <el-card shadow="never" class="detail-card">
       <div class="detail-title">
-        按流水类型汇总
+        按流水类型汇总（资金流水口径）
         <span class="detail-date">{{ summary?.date }}</span>
       </div>
       <el-table :data="rows" v-loading="loading" border stripe>
@@ -163,11 +189,14 @@ const refundAmount = computed(() => amountOf(4))
         </el-table-column>
       </el-table>
       <div class="detail-tip">
-        金额按流水方向带符号（支出为负、收入为正）；「退款支出」是商户侧扣款、「退款收入」是用户侧到账，
-        同一笔退款会各记一条，统计退款金额时只取「退款支出」一侧。
+        上方卡片为交易/退款口径：交易额、手续费、商户到账取自订单表（交易额 - 手续费 = 商户到账），
+        退款取自退款单表的成功退款。本表为资金流水口径，是账户余额的实际变动明细。
         <br />
-        手续费按流水类型「手续费」统计，支付流程目前未写入该类型流水，故该行固定为 0.00 （订单表已有
-        fee_amount 字段，待后端按日汇总后补齐）。
+        金额按流水方向带符号（支出为负、收入为正）；「退款支出」是商户侧扣款、「退款收入」是用户侧到账，
+        同一笔退款会各记一条。
+        <br />
+        手续费不产生余额变动（商户按「交易额 - 手续费」净额入账），流水表没有该类型记录，故本表不列；
+        手续费请以上方卡片为准。
       </div>
     </el-card>
   </ContentWrap>
