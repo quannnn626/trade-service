@@ -48,4 +48,14 @@
             #{s}
         </foreach>
     </select>
+
+    <!-- 日汇总：finish_time 为空表示退款未完成，天然被时间条件排除 -->
+    <select id="sumDailyRefund" resultType="java.util.Map">
+        SELECT COUNT(*)                         AS refundCount,
+               COALESCE(SUM(actual_amount), 0)  AS refundAmount
+        FROM pay_refund_order
+        WHERE finish_time &gt;= #{startTime}
+          AND finish_time &lt; #{endTime}
+          AND status = #{status}
+    </select>
 </mapper>

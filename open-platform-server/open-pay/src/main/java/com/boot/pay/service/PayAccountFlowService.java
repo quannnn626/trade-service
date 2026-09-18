@@ -56,7 +56,13 @@ public interface PayAccountFlowService extends IService<PayAccountFlow> {
                                       Integer flowType, LocalDateTime startTime, LocalDateTime endTime);
 
     /**
-     * 日汇总报表：按流水类型分组汇总指定日期的流水（默认今天）
+     * 日汇总报表（默认今天），一次返回三种口径：
+     * <p>
+     * 交易口径取自订单表（按支付时间归日，已退款订单仍计入当日交易额）、
+     * 退款口径取自退款单表（按完成时间归日，只算成功退款）、
+     * 流水口径取自流水表（按流水类型分组，资金实际变动的明细）。
+     * <p>
+     * 手续费没有独立流水，只能从订单表的 fee_amount 取（见开发计划 10.3.1）。
      *
      * @param date 汇总日期 yyyy-MM-dd（可空，默认当天）
      */

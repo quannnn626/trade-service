@@ -17,7 +17,11 @@ import com.boot.pay.flow.vo.DailySummaryVO;
 import com.boot.pay.flow.vo.FlowVO;
 import com.boot.pay.mapper.PayAccountFlowMapper;
 import com.boot.pay.mapper.PayMerchantAccountMapper;
+import com.boot.pay.mapper.PayPaymentOrderMapper;
+import com.boot.pay.mapper.PayRefundOrderMapper;
 import com.boot.pay.mapper.PayUserAccountMapper;
+import com.boot.pay.payment.enums.PayStatusEnum;
+import com.boot.pay.refund.enums.RefundStatusEnum;
 import com.boot.pay.service.PayAccountFlowService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -40,8 +44,18 @@ import org.springframework.stereotype.Service;
 public class PayAccountFlowServiceImpl extends ServiceImpl<PayAccountFlowMapper, PayAccountFlow>
     implements PayAccountFlowService {
 
+    /**
+     * 计入交易额的订单状态：退款不回冲当日交易额，退款在报表里单列
+     */
+    private static final List<Integer> TRADE_STATUSES = List.of(
+            PayStatusEnum.SUCCESS.getCode(),
+            PayStatusEnum.REFUNDING.getCode(),
+            PayStatusEnum.REFUNDED.getCode());
+
     private final PayUserAccountMapper payUserAccountMapper;
     private final PayMerchantAccountMapper payMerchantAccountMapper;
+    private final PayPaymentOrderMapper payPaymentOrderMapper;
+    private final PayRefundOrderMapper payRefundOrderMapper;
 
     @Override
     public void recordFlow(int accountType, Long accountId, String paymentNo, int flowType,
@@ -111,21 +125,31 @@ public class PayAccountFlowServiceImpl extends ServiceImpl<PayAccountFlowMapper,
         LocalDateTime startTime = summaryDate.atStartOfDay();
         LocalDateTime endTime = summaryDate.plusDays(1).atStartOfDay();
 
+        // 交易口径：交易额/手续费/结算额从订单表取，手续费只记录在 pay_payment_order.fee_amount
+        Map<String, Object> trade = payPaymentOrderMapper.sumDailyTrade(startTime, endTime, TRADE_STATUSES);
+        // 退款口径：按退款完成时间归日，只统计成功退款
+        Map<String, Object> refund = payRefundOrderMapper.sumDailyRefund(startTime, endTime,
+                RefundStatusEnum.SUCCESS.getCode());
+
         List<Map<String, Object>> rows = getBaseMapper().sumByFlowType(startTime, endTime);
         List<DailySummaryItemVO> items = rows.stream().map(row -> {
-            Integer flowType = ((Number) row.get("flowType")).intValue();
+            Integer flowType = intValue(row, "flowType");
             return DailySummaryItemVO.builder()
                     .flowType(flowType)
                     .flowTypeName(buildFlowTypeName(flowType))
-                    .count(((Number) row.get("count")).intValue())
-                    .amount(new BigDecimal(row.get("amount").toString()))
+                    .count(intValue(row, "count"))
+                    .amount(decimalValue(row, "amount"))
                     .build();
         }).collect(Collectors.toList());
 
-        int totalCount = items.stream().mapToInt(DailySummaryItemVO::getCount).sum();
         return DailySummaryVO.builder()
                 .date(summaryDate.toString())
-                .totalCount(totalCount)
+                .payCount(intValue(trade, "payCount"))
+                .tradeAmount(decimalValue(trade, "tradeAmount"))
+                .feeAmount(decimalValue(trade, "feeAmount"))
+                .settleAmount(decimalValue(trade, "settleAmount"))
+                .refundCount(intValue(refund, "refundCount"))
+                .refundAmount(decimalValue(refund, "refundAmount"))
                 .items(items)
                 .build();
     }
@@ -226,5 +250,21 @@ public class PayAccountFlowServiceImpl extends ServiceImpl<PayAccountFlowMapper,
     private String buildFlowTypeName(Integer flowType) {
         AccountFlowTypeEnum e = AccountFlowTypeEnum.fromCode(flowType);
         return e == null ? null : e.getDesc();
+    }
+
+    /**
+     * 汇总行取金额：MyBatis 返回的 Map 里金额可能是 BigDecimal 也可能是其它 Number，统一转 BigDecimal
+     */
+    private BigDecimal decimalValue(Map<String, Object> row, String key) {
+        Object value = row == null ? null : row.get(key);
+        return value == null ? BigDecimal.ZERO : new BigDecimal(value.toString());
+    }
+
+    /**
+     * 汇总行取笔数
+     */
+    private int intValue(Map<String, Object> row, String key) {
+        Object value = row == null ? null : row.get(key);
+        return value == null ? 0 : ((Number) value).intValue();
     }
 }

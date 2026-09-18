@@ -43,4 +43,19 @@
         timeout_expire, close_time, close_reason,
         fee_amount, settle_amount, settle_status, settle_time, sign
     </sql>
+
+    <!-- 日汇总：pay_time 为空表示未支付成功，天然被时间条件排除；status 条件兜底排除失败/关单 -->
+    <select id="sumDailyTrade" resultType="java.util.Map">
+        SELECT COUNT(*)                        AS payCount,
+               COALESCE(SUM(amount), 0)        AS tradeAmount,
+               COALESCE(SUM(fee_amount), 0)    AS feeAmount,
+               COALESCE(SUM(settle_amount), 0) AS settleAmount
+        FROM pay_payment_order
+        WHERE pay_time &gt;= #{startTime}
+          AND pay_time &lt; #{endTime}
+          AND status IN
+        <foreach collection="statuses" item="s" open="(" separator="," close=")">
+            #{s}
+        </foreach>
+    </select>
 </mapper>
