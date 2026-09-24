@@ -17,16 +17,19 @@ public interface PayMerchantAccountMapper extends BaseMapper<PayMerchantAccount>
     /**
      * 乐观锁增加余额（支付入账，按结算金额到账）
      * <p>
-     * 同时累计 total_income。
+     * 同时累计 total_income 与 total_fee。手续费是本次入账自带的，和余额在同一条 UPDATE 里落库，
+     * 避免出现「余额加了、手续费没累计」的中间态。
      *
      * @param merchantId 商户 ID
      * @param oldVersion 读取时的版本号
      * @param amount     入账金额（结算金额）
+     * @param feeAmount  本次入账对应的手续费，累计到 total_fee（毛额，退款不冲减）
      * @return 受影响行数，0 表示版本冲突
      */
     int addBalance(@Param("merchantId") Long merchantId,
                    @Param("oldVersion") Integer oldVersion,
-                   @Param("amount") BigDecimal amount);
+                   @Param("amount") BigDecimal amount,
+                   @Param("feeAmount") BigDecimal feeAmount);
 
     /**
      * 乐观锁扣减余额（退款扣款，按退款净额出账）

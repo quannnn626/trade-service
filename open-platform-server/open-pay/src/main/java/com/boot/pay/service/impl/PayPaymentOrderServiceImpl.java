@@ -397,9 +397,10 @@ public class PayPaymentOrderServiceImpl extends ServiceImpl<PayPaymentOrderMappe
             throw new PayOptimisticLockException("用户账户余额变动");
         }
 
-        // ⑧ 增加商户余额（乐观锁，按结算金额入账）
+        // ⑧ 增加商户余额（乐观锁，按结算金额入账；手续费同步累计到 total_fee，不写流水）
         int merchantRows = payMerchantAccountMapper.addBalance(
-                order.getMerchantId(), merchantAccount.getVersion(), order.getSettleAmount());
+                order.getMerchantId(), merchantAccount.getVersion(),
+                order.getSettleAmount(), nvl(order.getFeeAmount()));
         if (merchantRows == 0) {
             throw new PayOptimisticLockException("商户账户变动");
         }
