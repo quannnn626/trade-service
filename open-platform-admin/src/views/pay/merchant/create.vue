@@ -143,6 +143,8 @@ const submit = async () => {
       whiteIpList: ipList.length ? JSON.stringify(ipList) : undefined,
       remark: form.remark.trim() || undefined
     })
+    // 拦截器对业务失败只弹提示不抛异常，必须自己判断 code
+    if (res.code !== 0) return
     const data = res.data
     result.merchantNo = data?.merchantNo || ''
     result.appKey = data?.appKey || ''

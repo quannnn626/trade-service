@@ -229,10 +229,12 @@ const handleClose = async (row: PayOrderItem) => {
       cancelButtonText: '取消',
       inputPlaceholder: '请输入关闭原因（选填）'
     })
-    await closePayOrderApi({
+    const res = await closePayOrderApi({
       paymentNo: row.paymentNo,
       closeReason: value || '后台手动关闭'
     })
+    // 拦截器对业务失败只弹提示不抛异常，必须自己判断 code
+    if (res.code !== 0) return
     ElMessage.success('关单成功')
     getList()
   } catch (e) {

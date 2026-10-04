@@ -269,13 +269,12 @@ const handleToggle = async (row: AccountItem) => {
       disable ? '禁用账户' : '启用账户',
       { confirmButtonText: '确认', cancelButtonText: '取消', type: 'warning' }
     )
-    if (disable) {
-      await disableAccountApi(row.accountNo)
-      ElMessage.success('账户已禁用')
-    } else {
-      await enableAccountApi(row.accountNo)
-      ElMessage.success('账户已启用')
-    }
+    const res = disable
+      ? await disableAccountApi(row.accountNo)
+      : await enableAccountApi(row.accountNo)
+    // 拦截器对业务失败只弹提示不抛异常，必须自己判断 code
+    if (res.code !== 0) return
+    ElMessage.success(disable ? '账户已禁用' : '账户已启用')
     getList()
   } catch {
     // 用户取消或接口报错（报错已由全局拦截器提示）
@@ -366,12 +365,14 @@ const submitAdjust = async () => {
   adjusting.value = true
   try {
     // 方向转换为后端约定的金额符号：加款为正、扣款为负
-    await adjustAccountApi({
+    const res = await adjustAccountApi({
       accountType: 1,
       accountNo: adjustForm.accountNo,
       amount: direction === 1 ? amount : -amount,
       remark: remark.trim()
     })
+    // 拦截器对业务失败只弹提示不抛异常，必须自己判断 code
+    if (res.code !== 0) return
     ElMessage.success('调账成功')
     adjustVisible.value = false
     getList()

@@ -322,12 +322,14 @@ const submitAdjust = async () => {
   adjusting.value = true
   try {
     // 方向转换为后端约定的金额符号：加款为正、扣款为负
-    await adjustAccountApi({
+    const res = await adjustAccountApi({
       accountType: 2,
       accountNo: adjustForm.accountNo,
       amount: direction === 1 ? amount : -amount,
       remark: remark.trim()
     })
+    // 拦截器对业务失败只弹提示不抛异常，必须自己判断 code
+    if (res.code !== 0) return
     ElMessage.success('调账成功')
     adjustVisible.value = false
     getList()

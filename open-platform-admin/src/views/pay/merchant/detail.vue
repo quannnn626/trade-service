@@ -69,13 +69,12 @@ const handleToggle = async () => {
   }
   toggleLoading.value = true
   try {
-    if (disable) {
-      await disableMerchantApi(d.merchantNo)
-      ElMessage.success('商户已禁用')
-    } else {
-      await enableMerchantApi(d.merchantNo)
-      ElMessage.success('商户已启用')
-    }
+    const res = disable
+      ? await disableMerchantApi(d.merchantNo)
+      : await enableMerchantApi(d.merchantNo)
+    // 拦截器对业务失败只弹提示不抛异常，必须自己判断 code
+    if (res.code !== 0) return
+    ElMessage.success(disable ? '商户已禁用' : '商户已启用')
     loadDetail()
   } finally {
     toggleLoading.value = false

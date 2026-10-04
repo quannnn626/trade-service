@@ -301,7 +301,9 @@ const handleAudit = async (row: RefundItem, result: 1 | 2) => {
         }
       )
     }
-    await auditRefundApi({ refundNo: row.refundNo, auditResult: result, auditRemark })
+    const res = await auditRefundApi({ refundNo: row.refundNo, auditResult: result, auditRemark })
+    // 拦截器对业务失败只弹提示不抛异常，必须自己判断 code
+    if (res.code !== 0) return
     ElMessage.success(result === 1 ? '审核通过，退款已执行' : '已驳回')
     getList()
   } catch {

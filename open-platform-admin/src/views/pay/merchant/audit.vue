@@ -185,6 +185,8 @@ const handleAudit = async (row: MerchantItem, result: 1 | 2) => {
       auditStatus: result,
       auditRemark
     })
+    // 拦截器对业务失败只弹提示不抛异常，必须自己判断 code
+    if (res.code !== 0) return
     if (result === 1) {
       const accountNo = res.data?.accountNo
       ElMessage.success(accountNo ? `审核通过，已创建资金账户 ${accountNo}` : '审核通过')
