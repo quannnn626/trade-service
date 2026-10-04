@@ -274,29 +274,33 @@ const signIn = async () => {
       try {
         const res = await loginApi(formData)
 
-        if (res) {
-          // 是否记住我 - 只保存用户名
-          if (unref(remember)) {
-            userStore.setLoginInfo(formData.username)
-          } else {
-            userStore.setLoginInfo(undefined)
-          }
-          userStore.setRememberMe(unref(remember))
-          userStore.setUserId(res.data.userId)
-          userStore.setToken(res.data.accessToken)
-          userStore.setRefreshToken(res.data.refreshToken)
-          userStore.setUserInfo(res.data)
-          // 是否使用动态路由
-          if (appStore.getDynamicRouter) {
-            getRole()
-          } else {
-            await permissionStore.generateRoutes('static').catch(() => {})
-            permissionStore.getAddRouters.forEach((route) => {
-              addRoute(route as RouteRecordRaw) // 动态添加可访问路由表
-            })
-            permissionStore.setIsAddRouters(true)
-            push({ path: redirect.value || permissionStore.addRouters[0].path })
-          }
+        // 拦截器对业务失败只弹提示不抛异常，必须自己判断 code（失败时 res.data 为 null）
+        if (res.code !== 0) {
+          errorMessage.value = res.message || '登录失败，请检查用户名和密码'
+          return
+        }
+
+        // 是否记住我 - 只保存用户名
+        if (unref(remember)) {
+          userStore.setLoginInfo(formData.username)
+        } else {
+          userStore.setLoginInfo(undefined)
+        }
+        userStore.setRememberMe(unref(remember))
+        userStore.setUserId(res.data.userId)
+        userStore.setToken(res.data.accessToken)
+        userStore.setRefreshToken(res.data.refreshToken)
+        userStore.setUserInfo(res.data)
+        // 是否使用动态路由
+        if (appStore.getDynamicRouter) {
+          getRole()
+        } else {
+          await permissionStore.generateRoutes('static').catch(() => {})
+          permissionStore.getAddRouters.forEach((route) => {
+            addRoute(route as RouteRecordRaw) // 动态添加可访问路由表
+          })
+          permissionStore.setIsAddRouters(true)
+          push({ path: redirect.value || permissionStore.addRouters[0].path })
         }
       } catch (error: any) {
         errorMessage.value = error?.message || '登录失败，请检查用户名和密码'

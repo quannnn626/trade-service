@@ -44,7 +44,8 @@ const defaultResponseInterceptors = (response: AxiosResponse) => {
   if (response.data.code === SUCCESS_CODE) {
     return response.data
   }
-  if (response.data.code === 401) {
+  // 只有已登录才谈得上「登录态过期」；登录等匿名接口的 401 是业务错误本身，走下面的通用失败分支
+  if (response.data.code === 401 && useUserStoreWithOut().getToken) {
     // 登录态过期：静默刷新 token 并重试；刷新失败时内部会登出，不在此弹错
     return refreshAndRetry(response)
   }

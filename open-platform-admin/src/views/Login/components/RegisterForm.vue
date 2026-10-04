@@ -174,10 +174,12 @@ const loginRegister = async () => {
       try {
         loading.value = true
         const formData = await formMethods.getFormData()
-        await registerApi({
+        const res = await registerApi({
           username: formData.username,
           password: formData.password
         })
+        // 拦截器对业务失败只弹提示不抛异常，必须自己判断 code
+        if (res.code !== 0) return
         ElMessage.success('注册成功，请登录')
         toLogin()
       } catch (error: any) {
