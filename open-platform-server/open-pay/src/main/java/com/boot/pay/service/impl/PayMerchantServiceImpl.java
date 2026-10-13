@@ -13,6 +13,7 @@ import com.boot.pay.domain.PayMerchantSecretHistory;
 import com.boot.pay.mapper.PayMerchantAccountMapper;
 import com.boot.pay.mapper.PayMerchantMapper;
 import com.boot.pay.mapper.PayMerchantSecretHistoryMapper;
+import com.boot.pay.merchant.constants.MerchantCacheConstants;
 import com.boot.pay.merchant.dto.MerchantApplyDTO;
 import com.boot.pay.merchant.dto.MerchantAuditDTO;
 import com.boot.pay.merchant.vo.MerchantApplyVO;
@@ -29,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +49,9 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
 
     @Resource
     private PayMerchantSecretHistoryMapper payMerchantSecretHistoryMapper;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     public MerchantApplyVO apply(MerchantApplyDTO dto) {
@@ -144,6 +149,7 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
         if (!updated) {
             throw new BusinessException("更新商户状态失败");
         }
+        evictMerchantCache(merchant);
 
         String accountNo = "MA" + LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"))
                 + String.valueOf(IdUtil.getSnowflake(1, 1).nextId()).substring(10);
@@ -187,6 +193,7 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
         if (!updated) {
             throw new BusinessException("更新商户审核状态失败");
         }
+        evictMerchantCache(merchant);
 
         log.info("商户审核驳回: merchantNo={}, reason={}", merchant.getMerchantNo(), dto.getAuditRemark());
 
@@ -222,6 +229,7 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
         if (!updated) {
             throw new BusinessException("启用商户失败");
         }
+        evictMerchantCache(merchant);
         log.info("商户已启用: merchantNo={}", merchantNo);
     }
 
@@ -245,6 +253,7 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
         if (!updated) {
             throw new BusinessException("禁用商户失败");
         }
+        evictMerchantCache(merchant);
         log.info("商户已禁用: merchantNo={}", merchantNo);
     }
 
@@ -400,6 +409,7 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
         if (!updated) {
             throw new BusinessException("密钥轮换失败");
         }
+        evictMerchantCache(merchant);
 
         log.info("商户密钥已轮换: merchantNo={}, oldVersion={}, newVersion={}",
                 merchantNo, merchant.getSecretVersion(), newVersion);
@@ -410,5 +420,12 @@ public class PayMerchantServiceImpl extends ServiceImpl<PayMerchantMapper, PayMe
                 .secretVersion(newVersion)
                 .tip("密钥已轮换，旧密钥24小时后失效，请尽快更新。新密钥仅展示一次！")
                 .build();
+    }
+
+    /**
+     * 商户状态 / 密钥变更后删除缓存，否则拦截器最长 30 分钟内仍按旧数据验签
+     */
+    private void evictMerchantCache(PayMerchant merchant) {
+        stringRedisTemplate.delete(MerchantCacheConstants.cacheKey(merchant.getAppKey()));
     }
 }

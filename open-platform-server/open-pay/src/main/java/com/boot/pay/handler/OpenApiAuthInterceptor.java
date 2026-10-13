@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.TypeReference;
 import com.boot.common.utils.SignUtil;
 import com.boot.pay.context.MerchantContext;
 import com.boot.pay.domain.PayMerchant;
+import com.boot.pay.merchant.constants.MerchantCacheConstants;
 import com.boot.pay.service.PayMerchantService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -33,8 +34,6 @@ import java.util.concurrent.TimeUnit;
 public class OpenApiAuthInterceptor implements HandlerInterceptor {
 
     private static final long TIME_WINDOW_MILLIS = 5 * 60 * 1000L;
-    private static final String MERCHANT_CACHE_PREFIX = "pay:merchant:";
-    private static final long MERCHANT_CACHE_TTL_MINUTES = 30;
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final PayMerchantService payMerchantService;
@@ -160,7 +159,7 @@ public class OpenApiAuthInterceptor implements HandlerInterceptor {
     }
 
     private PayMerchant getMerchantByAppKey(String appKey) {
-        String cacheKey = MERCHANT_CACHE_PREFIX + appKey;
+        String cacheKey = MerchantCacheConstants.cacheKey(appKey);
         String cachedJson = stringRedisTemplate.opsForValue().get(cacheKey);
         if (cachedJson != null && !cachedJson.isEmpty()) {
             return JSON.parseObject(cachedJson, PayMerchant.class);
@@ -169,7 +168,7 @@ public class OpenApiAuthInterceptor implements HandlerInterceptor {
                 new LambdaQueryWrapper<PayMerchant>().eq(PayMerchant::getAppKey, appKey));
         if (merchant != null) {
             stringRedisTemplate.opsForValue().set(cacheKey, JSON.toJSONString(merchant),
-                    MERCHANT_CACHE_TTL_MINUTES, TimeUnit.MINUTES);
+                    MerchantCacheConstants.MERCHANT_CACHE_TTL_MINUTES, TimeUnit.MINUTES);
         }
         return merchant;
     }
